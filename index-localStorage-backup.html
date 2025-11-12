@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TURISTA PARAGUAY - Sistema de Inventario</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="supabase-config.js"></script>
     <style>
         * {
             margin: 0;
@@ -440,10 +438,6 @@
             <div id="dashboard" class="section active">
                 <h2 style="margin-bottom: 20px;">Dashboard General</h2>
 
-                <div style="margin-bottom: 20px;">
-                    <button class="btn btn-warning" onclick="migrateLocalStorageToSupabase()" style="width: 100%;">Migrar Datos desde localStorage</button>
-                </div>
-
                 <div class="stats-grid">
                     <div class="stat-card">
                         <div class="stat-label">Total Productos</div>
@@ -834,37 +828,36 @@
     </div>
 
     <script>
-        // Base de datos con Supabase
-        let products = [];
-        let sales = [];
-        let clients = [];
+        // Base de datos en LocalStorage
+        let products = JSON.parse(localStorage.getItem('tp_products')) || [];
+        let sales = JSON.parse(localStorage.getItem('tp_sales')) || [];
+        let clients = JSON.parse(localStorage.getItem('tp_clients')) || [];
 
         // Variables globales
         let editingProductId = null;
         let editingClientId = null;
 
         // Inicializar
-        document.addEventListener('DOMContentLoaded', async function() {
-            await loadProducts();
-            await loadSales();
-            await loadClients();
-            await updateDashboard();
-            await updateReports();
+        document.addEventListener('DOMContentLoaded', function() {
+            loadProducts();
+            loadSales();
+            updateDashboard();
+            updateReports();
         });
 
         // Navegación
-        async function showSection(sectionName) {
+        function showSection(sectionName) {
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
 
             document.getElementById(sectionName).classList.add('active');
             event.target.classList.add('active');
 
-            if (sectionName === 'dashboard') await updateDashboard();
-            if (sectionName === 'products') await loadProducts();
-            if (sectionName === 'clients') await loadClients();
-            if (sectionName === 'sales') await loadSalesForm();
-            if (sectionName === 'reports') await updateReports();
+            if (sectionName === 'dashboard') updateDashboard();
+            if (sectionName === 'products') loadProducts();
+            if (sectionName === 'clients') loadClients();
+            if (sectionName === 'sales') loadSalesForm();
+            if (sectionName === 'reports') updateReports();
         }
 
         // Generar código automático único
@@ -919,10 +912,11 @@
         }
 
         // Guardar producto
-        async function saveProduct(event) {
+        function saveProduct(event) {
             event.preventDefault();
 
             const productData = {
+                id: editingProductId || Date.now(),
                 code: document.getElementById('productCode').value,
                 name: document.getElementById('productName').value,
                 brand: document.getElementById('productBrand').value || '',
@@ -932,30 +926,38 @@
                 cost: parseFormattedPrice(document.getElementById('productCost').value),
                 price: parseFormattedPrice(document.getElementById('productPrice').value),
                 minStock: parseFloat(document.getElementById('productMinStock').value) || 5,
-                description: document.getElementById('productDescription').value
+                description: document.getElementById('productDescription').value,
+                createdAt: editingProductId ? products.find(p => p.id === editingProductId).createdAt : new Date().toISOString(),
+                updatedAt: new Date().toISOString()
             };
 
-            try {
-                if (editingProductId) {
-                    await updateProductInDB(editingProductId, productData);
-                    alert('✅ Producto actualizado correctamente');
-                    closeProductModal();
-                } else {
-                    await saveProductToDB(productData);
-                    alert('✅ Producto agregado correctamente');
+            if (editingProductId) {
+                const index = products.findIndex(p => p.id === editingProductId);
+                products[index] = productData;
 
-                    // Limpiar formulario para agregar otro producto rápidamente
-                    document.getElementById('productForm').reset();
-                    document.getElementById('productCode').value = generateProductCode();
-                    document.getElementById('productUnit').value = 'unidades';
-                    document.getElementById('productMinStock').value = 5;
-                    document.getElementById('productName').focus();
-                }
+                localStorage.setItem('tp_products', JSON.stringify(products));
+                closeProductModal();
+                loadProducts();
+                updateDashboard();
 
-                await loadProducts();
-                await updateDashboard();
-            } catch (error) {
-                alert('Error al guardar producto: ' + error.message);
+                alert('✅ Producto actualizado correctamente');
+            } else {
+                products.push(productData);
+
+                localStorage.setItem('tp_products', JSON.stringify(products));
+                loadProducts();
+                updateDashboard();
+
+                alert('✅ Producto agregado correctamente');
+
+                // Limpiar formulario para agregar otro producto rápidamente
+                document.getElementById('productForm').reset();
+                document.getElementById('productCode').value = generateProductCode();
+                document.getElementById('productUnit').value = 'unidades';
+                document.getElementById('productMinStock').value = 5;
+
+                // Enfocar el primer campo para continuar agregando
+                document.getElementById('productName').focus();
             }
         }
 
@@ -1012,67 +1014,58 @@
         }
 
         // Cargar productos
-        async function loadProducts() {
+        function loadProducts() {
             const tbody = document.getElementById('productsTableBody');
             tbody.innerHTML = '';
 
-            try {
-                products = await loadProductsFromDB();
-
-                if (products.length === 0) {
-                    tbody.innerHTML = `
-                        <tr>
-                            <td colspan="8" class="empty-state">
-                                <div class="empty-state-icon">📦</div>
-                                <div>No hay productos registrados</div>
-                                <button class="btn btn-primary" style="margin-top: 20px;" onclick="openProductModal()">Agregar Primer Producto</button>
-                            </td>
-                        </tr>
-                    `;
-                    return;
-                }
-
-                products.forEach(product => {
-                    const stockStatus = product.stock <= product.minStock ?
-                        '<span class="badge badge-danger">Stock Bajo</span>' :
-                        product.stock <= product.minStock * 2 ?
-                        '<span class="badge badge-warning">Stock Medio</span>' :
-                        '<span class="badge badge-success">Stock OK</span>';
-
-                    const brandCell = product.brand ? `<td>${product.brand}</td>` : '<td><em style="color: #999;">-</em></td>';
-
-                    tbody.innerHTML += `
-                        <tr>
-                            <td><strong>${product.code}</strong></td>
-                            <td>${product.name}</td>
-                            ${brandCell}
-                            <td>${product.category}</td>
-                            <td><strong>${formatUnit(product.stock, product.unit)}</strong></td>
-                            <td><strong>${formatGuaranies(product.price)}</strong></td>
-                            <td>${stockStatus}</td>
-                            <td class="action-btns">
-                                <button class="action-btn btn-primary" onclick="openProductModal(${product.id})">✏️ Editar</button>
-                                <button class="action-btn btn-danger" onclick="deleteProduct(${product.id})">🗑️</button>
-                            </td>
-                        </tr>
-                    `;
-                });
-            } catch (error) {
-                alert('Error al cargar productos: ' + error.message);
+            if (products.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="empty-state">
+                            <div class="empty-state-icon">📦</div>
+                            <div>No hay productos registrados</div>
+                            <button class="btn btn-primary" style="margin-top: 20px;" onclick="openProductModal()">Agregar Primer Producto</button>
+                        </td>
+                    </tr>
+                `;
+                return;
             }
+
+            products.forEach(product => {
+                const stockStatus = product.stock <= product.minStock ?
+                    '<span class="badge badge-danger">Stock Bajo</span>' :
+                    product.stock <= product.minStock * 2 ?
+                    '<span class="badge badge-warning">Stock Medio</span>' :
+                    '<span class="badge badge-success">Stock OK</span>';
+
+                const brandCell = product.brand ? `<td>${product.brand}</td>` : '<td><em style="color: #999;">-</em></td>';
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td><strong>${product.code}</strong></td>
+                        <td>${product.name}</td>
+                        ${brandCell}
+                        <td>${product.category}</td>
+                        <td><strong>${formatUnit(product.stock, product.unit)}</strong></td>
+                        <td><strong>${formatGuaranies(product.price)}</strong></td>
+                        <td>${stockStatus}</td>
+                        <td class="action-btns">
+                            <button class="action-btn btn-primary" onclick="openProductModal(${product.id})">✏️ Editar</button>
+                            <button class="action-btn btn-danger" onclick="deleteProduct(${product.id})">🗑️</button>
+                        </td>
+                    </tr>
+                `;
+            });
         }
 
         // Eliminar producto
-        async function deleteProduct(productId) {
+        function deleteProduct(productId) {
             if (confirm('¿Estás seguro de que deseas eliminar este producto?')) {
-                try {
-                    await deleteProductFromDB(productId);
-                    await loadProducts();
-                    await updateDashboard();
-                    alert('✅ Producto eliminado correctamente');
-                } catch (error) {
-                    alert('Error al eliminar producto: ' + error.message);
-                }
+                products = products.filter(p => p.id !== productId);
+                localStorage.setItem('tp_products', JSON.stringify(products));
+                loadProducts();
+                updateDashboard();
+                alert('✅ Producto eliminado correctamente');
             }
         }
 
@@ -1095,7 +1088,7 @@
         }
 
         // Cargar formulario de ventas
-        async function loadSalesForm() {
+        function loadSalesForm() {
             // Cargar productos
             const selectProduct = document.getElementById('saleProduct');
             selectProduct.innerHTML = '<option value="">-- Seleccionar --</option>';
@@ -1114,7 +1107,7 @@
                 selectCustomer.innerHTML += `<option value="${client.id}">${client.name} - ${client.docType}: ${client.docNumber}</option>`;
             });
 
-            await loadSalesHistory();
+            loadSalesHistory();
         }
 
         // Actualizar precio de venta
@@ -1140,10 +1133,10 @@
         }
 
         // Registrar venta
-        async function registerSale() {
+        function registerSale() {
             const productId = parseInt(document.getElementById('saleProduct').value);
             const quantity = parseFloat(document.getElementById('saleQuantity').value);
-            const customerId = parseInt(document.getElementById('saleCustomer').value);
+            const customerId = document.getElementById('saleCustomer').value;
 
             if (!productId || !quantity || quantity <= 0) {
                 alert('⚠️ Por favor selecciona un producto y cantidad válida');
@@ -1163,7 +1156,8 @@
                 return;
             }
 
-            const saleData = {
+            const sale = {
+                id: Date.now(),
                 productId: productId,
                 productName: product.name,
                 productBrand: product.brand || '',
@@ -1174,44 +1168,45 @@
                 total: product.price * quantity,
                 customerId: client.id,
                 customer: client.name,
-                customerDoc: `${client.docType}: ${client.docNumber}`
+                customerDoc: `${client.docType}: ${client.docNumber}`,
+                date: new Date().toISOString()
             };
 
-            try {
-                // Guardar venta
-                await saveSaleToDB(saleData);
+            // Actualizar stock
+            product.stock -= quantity;
+            const productIndex = products.findIndex(p => p.id === productId);
+            products[productIndex] = product;
 
-                // Actualizar stock del producto
-                const newStock = product.stock - quantity;
-                await updateProductInDB(productId, { stock: newStock });
+            // Guardar venta
+            sales.push(sale);
 
-                alert('✅ Venta registrada exitosamente');
+            localStorage.setItem('tp_products', JSON.stringify(products));
+            localStorage.setItem('tp_sales', JSON.stringify(sales));
 
-                // Limpiar formulario
-                document.getElementById('saleProduct').value = '';
-                document.getElementById('saleQuantity').value = 1;
-                document.getElementById('salePrice').value = '';
-                document.getElementById('saleTotal').value = '';
-                document.getElementById('saleCustomer').value = '';
-                document.getElementById('saleUnitLabel').textContent = '';
+            alert('✅ Venta registrada exitosamente');
 
-                await loadProducts();
-                await loadSalesForm();
-                await updateDashboard();
-            } catch (error) {
-                alert('Error al registrar venta: ' + error.message);
-            }
+            // Limpiar formulario
+            document.getElementById('saleProduct').value = '';
+            document.getElementById('saleQuantity').value = 1;
+            document.getElementById('salePrice').value = '';
+            document.getElementById('saleTotal').value = '';
+            document.getElementById('saleCustomer').value = '';
+            document.getElementById('saleUnitLabel').textContent = '';
+
+            loadSalesForm();
+            loadProducts();
+            updateDashboard();
         }
 
         // Cargar historial de ventas
-        async function loadSalesHistory() {
+        function loadSalesHistory() {
             const tbody = document.getElementById('salesHistoryBody');
             tbody.innerHTML = '';
 
             if (sales.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="6" class="empty-state">
+                        <td colspan="5" class="empty-state">
                             <div class="empty-state-icon">💰</div>
                             <div>No hay ventas registradas</div>
                         </td>
@@ -1224,7 +1219,7 @@
             const recentSales = [...sales].reverse().slice(0, 20);
 
             recentSales.forEach(sale => {
-                const date = new Date(sale.created_at);
+                const date = new Date(sale.date);
                 const brandCell = sale.productBrand ? `<td>${sale.productBrand}</td>` : '<td><em style="color: #999;">Sin marca</em></td>';
                 tbody.innerHTML += `
                     <tr>
@@ -1240,17 +1235,12 @@
         }
 
         // Cargar ventas
-        async function loadSales() {
-            try {
-                sales = await loadSalesFromDB();
-                await loadSalesHistory();
-            } catch (error) {
-                alert('Error al cargar ventas: ' + error.message);
-            }
+        function loadSales() {
+            loadSalesHistory();
         }
 
         // Actualizar dashboard
-        async function updateDashboard() {
+        function updateDashboard() {
             // Total productos
             document.getElementById('totalProducts').textContent = products.length;
 
@@ -1260,7 +1250,7 @@
 
             // Ventas de hoy
             const today = new Date().toDateString();
-            const todaySales = sales.filter(s => new Date(s.created_at).toDateString() === today);
+            const todaySales = sales.filter(s => new Date(s.date).toDateString() === today);
             const todayTotal = todaySales.reduce((sum, s) => sum + s.total, 0);
             document.getElementById('todaySales').textContent = formatGuaranies(todayTotal);
 
@@ -1332,21 +1322,21 @@
         }
 
         // Actualizar reportes
-        async function updateReports() {
+        function updateReports() {
             const now = new Date();
             const currentMonth = now.getMonth();
             const currentYear = now.getFullYear();
 
             // Ventas del mes
             const monthSales = sales.filter(s => {
-                const saleDate = new Date(s.created_at);
+                const saleDate = new Date(s.date);
                 return saleDate.getMonth() === currentMonth && saleDate.getFullYear() === currentYear;
             });
             const monthTotal = monthSales.reduce((sum, s) => sum + s.total, 0);
             document.getElementById('monthSales').textContent = formatGuaranies(monthTotal);
 
             // Ventas del año
-            const yearSales = sales.filter(s => new Date(s.created_at).getFullYear() === currentYear);
+            const yearSales = sales.filter(s => new Date(s.date).getFullYear() === currentYear);
             const yearTotal = yearSales.reduce((sum, s) => sum + s.total, 0);
             document.getElementById('yearSales').textContent = formatGuaranies(yearTotal);
 
@@ -1424,7 +1414,7 @@
             csv += 'Fecha,Producto,Cantidad,Unidad,Total,Cliente\n';
 
             sales.forEach(s => {
-                const date = new Date(s.created_at).toLocaleString('es-PY');
+                const date = new Date(s.date).toLocaleString('es-PY');
                 csv += `"${date}","${s.productName}",${s.quantity},"${s.unit}",${s.total},"${s.customer}"\n`;
             });
 
@@ -1492,10 +1482,11 @@
         }
 
         // Guardar cliente
-        async function saveClient(event) {
+        function saveClient(event) {
             event.preventDefault();
 
             const clientData = {
+                id: editingClientId || Date.now(),
                 code: document.getElementById('clientCode').value,
                 docType: document.getElementById('clientDocType').value,
                 docNumber: document.getElementById('clientDocNumber').value,
@@ -1504,66 +1495,60 @@
                 email: document.getElementById('clientEmail').value,
                 city: document.getElementById('clientCity').value,
                 address: document.getElementById('clientAddress').value,
-                notes: document.getElementById('clientNotes').value
+                notes: document.getElementById('clientNotes').value,
+                createdAt: editingClientId ? clients.find(c => c.id === editingClientId).createdAt : new Date().toISOString(),
+                updatedAt: new Date().toISOString()
             };
 
-            try {
-                if (editingClientId) {
-                    await updateClientInDB(editingClientId, clientData);
-                    alert('✅ Cliente actualizado correctamente');
-                } else {
-                    await saveClientToDB(clientData);
-                    alert('✅ Cliente registrado correctamente');
-                }
-
-                closeClientModal();
-                await loadClients();
-                await loadSalesForm();
-            } catch (error) {
-                alert('Error al guardar cliente: ' + error.message);
+            if (editingClientId) {
+                const index = clients.findIndex(c => c.id === editingClientId);
+                clients[index] = clientData;
+            } else {
+                clients.push(clientData);
             }
+
+            localStorage.setItem('tp_clients', JSON.stringify(clients));
+            closeClientModal();
+            loadClients();
+            loadSalesForm(); // Actualizar select de clientes en ventas
+
+            alert(editingClientId ? '✅ Cliente actualizado correctamente' : '✅ Cliente registrado correctamente');
         }
 
         // Cargar clientes
-        async function loadClients() {
+        function loadClients() {
             const tbody = document.getElementById('clientsTableBody');
             tbody.innerHTML = '';
 
-            try {
-                clients = await loadClientsFromDB();
-
-                if (clients.length === 0) {
-                    tbody.innerHTML = `
-                        <tr>
-                            <td colspan="7" class="empty-state">
-                                <div class="empty-state-icon">👥</div>
-                                <div>No hay clientes registrados</div>
-                                <button class="btn btn-primary" style="margin-top: 20px;" onclick="openClientModal()">Agregar Primer Cliente</button>
-                            </td>
-                        </tr>
-                    `;
-                    return;
-                }
-
-                clients.forEach(client => {
-                    tbody.innerHTML += `
-                        <tr>
-                            <td><strong>${client.code}</strong></td>
-                            <td>${client.name}</td>
-                            <td>${client.docType}: ${client.docNumber}</td>
-                            <td>${client.phone}</td>
-                            <td>${client.email || '-'}</td>
-                            <td>${client.city}</td>
-                            <td class="action-btns">
-                                <button class="action-btn btn-warning" onclick="openClientModal(${client.id})">✏️ Editar</button>
-                                <button class="action-btn btn-danger" onclick="deleteClient(${client.id})">🗑️ Eliminar</button>
-                            </td>
-                        </tr>
-                    `;
-                });
-            } catch (error) {
-                alert('Error al cargar clientes: ' + error.message);
+            if (clients.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="empty-state">
+                            <div class="empty-state-icon">👥</div>
+                            <div>No hay clientes registrados</div>
+                            <button class="btn btn-primary" style="margin-top: 20px;" onclick="openClientModal()">Agregar Primer Cliente</button>
+                        </td>
+                    </tr>
+                `;
+                return;
             }
+
+            clients.forEach(client => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td><strong>${client.code}</strong></td>
+                        <td>${client.name}</td>
+                        <td>${client.docType}: ${client.docNumber}</td>
+                        <td>${client.phone}</td>
+                        <td>${client.email || '-'}</td>
+                        <td>${client.city}</td>
+                        <td class="action-btns">
+                            <button class="action-btn btn-warning" onclick="openClientModal(${client.id})">✏️ Editar</button>
+                            <button class="action-btn btn-danger" onclick="deleteClient(${client.id})">🗑️ Eliminar</button>
+                        </td>
+                    </tr>
+                `;
+            });
         }
 
         // Filtrar clientes
@@ -1578,17 +1563,15 @@
         }
 
         // Eliminar cliente
-        async function deleteClient(clientId) {
+        function deleteClient(clientId) {
             if (!confirm('¿Estás seguro de eliminar este cliente?')) return;
 
-            try {
-                await deleteClientFromDB(clientId);
-                await loadClients();
-                await loadSalesForm();
-                alert('✅ Cliente eliminado correctamente');
-            } catch (error) {
-                alert('Error al eliminar cliente: ' + error.message);
-            }
+            clients = clients.filter(c => c.id !== clientId);
+            localStorage.setItem('tp_clients', JSON.stringify(clients));
+            loadClients();
+            loadSalesForm(); // Actualizar select de clientes en ventas
+
+            alert('✅ Cliente eliminado correctamente');
         }
     </script>
 </body>
