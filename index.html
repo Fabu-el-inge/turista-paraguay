@@ -896,7 +896,6 @@
         let editingClientId = null;
         let selectedImageFile = null;
 
-
         // Inicializar
         document.addEventListener('DOMContentLoaded', async function() {
             await loadProducts();
@@ -1029,11 +1028,21 @@
             }
 
             try {
-                if (editingProductId) {
-                    await updateProductInDB(editingProductId, productData);
+
+                // Obtener el ID del producto del campo oculto o de la variable global
+
+                const productId = document.getElementById('productId').value || editingProductId;
+
+                if (productId) {
+
+                    // Modo edición - actualizar producto existente
+                    await updateProductInDB(parseInt(productId), productData);
                     alert('✅ Producto actualizado correctamente');
                     closeProductModal();
                 } else {
+
+                    // Modo creación - crear nuevo producto
+
                     await saveProductToDB(productData);
                     alert('✅ Producto agregado correctamente');
 
@@ -1043,11 +1052,13 @@
                     document.getElementById('productUnit').value = 'unidades';
                     document.getElementById('productMinStock').value = 5;
                     document.getElementById('productName').focus();
+                    clearImage();
                 }
 
                 await loadProducts();
                 await updateDashboard();
             } catch (error) {
+                console.error('Error completo:', error);
                 alert('Error al guardar producto: ' + error.message);
             }
         }
@@ -1072,8 +1083,6 @@
                 input.value = input.value.charAt(0).toUpperCase() + input.value.slice(1);
             }
         }
-
-
 
         // ===== FUNCIONES PARA MANEJO DE FOTOS =====
         function handleImageSelect(event) {
