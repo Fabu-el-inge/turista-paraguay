@@ -573,6 +573,10 @@
                         <select id="saleProduct" onchange="updateSalePrice()">
                             <option value="">-- Seleccionar --</option>
                         </select>
+                        <!-- Vista previa de imagen del producto -->
+                        <div id="saleProductImagePreview" style="margin-top:10px;display:none;">
+                            <img id="saleProductImage" style="max-width:100%;max-height:150px;border-radius:8px;border:2px solid #ddd;object-fit:cover;">
+                        </div>
                     </div>
                     <div class="form-group">
                         <label>Cantidad <span id="saleUnitLabel"></span></label>
@@ -1510,15 +1514,28 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
         // Actualizar precio de venta
         function updateSalePrice() {
             const productId = parseInt(document.getElementById('saleProduct').value);
+            const imagePreview = document.getElementById('saleProductImagePreview');
+            const imageElement = document.getElementById('saleProductImage');
+            
             if (productId) {
                 const product = products.find(p => p.id === productId);
                 document.getElementById('salePrice').value = product.price;
                 document.getElementById('saleUnitLabel').textContent = `(${product.unit})`;
+                
+                // Mostrar imagen del producto si existe
+                if (product.imageUrl) {
+                    imageElement.src = product.imageUrl;
+                    imagePreview.style.display = 'block';
+                } else {
+                    imagePreview.style.display = 'none';
+                }
+                
                 updateSaleTotal();
             } else {
                 document.getElementById('salePrice').value = '';
                 document.getElementById('saleTotal').value = '';
                 document.getElementById('saleUnitLabel').textContent = '';
+                imagePreview.style.display = 'none';
             }
         }
 
