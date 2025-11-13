@@ -879,26 +879,23 @@
         // Categorías del sistema
         let categories = [];
 
-        // Cargar categorías desde localStorage o usar predeterminadas
-        function loadCategories() {
-            const savedCategories = localStorage.getItem('categories');
-            if (savedCategories) {
-                categories = JSON.parse(savedCategories);
-            } else {
-                // Categorías predeterminadas
+        // Cargar categorías desde Supabase
+        async function loadCategories() {
+            try {
+                categories = await loadCategoriesFromDB();
+                updateCategorySelects();
+            } catch (error) {
+                console.error('Error al cargar categorías:', error);
+                // Usar categorías predeterminadas si falla
                 categories = [
                     'Remeras', 'Recuerdos', 'Botellas', 'Stickers', 
                     'Gorras', 'Llaveros', 'Tazas', 'Materiales', 'Telas', 'Otros'
                 ];
-                saveCategories();
+                updateCategorySelects();
             }
-            updateCategorySelects();
         }
 
-        // Guardar categorías en localStorage
-        function saveCategories() {
-            localStorage.setItem('categories', JSON.stringify(categories));
-        }
+        // Ya no se usa - las categorías se guardan directamente en Supabase
 
         // Actualizar todos los selects de categorías
         function updateCategorySelects() {
@@ -947,7 +944,7 @@
         }
 
         // Agregar nueva categoría
-        function addCategory() {
+        async function addCategory() {
             const categoryName = document.getElementById('newCategoryName').value.trim();
             
             if (!categoryName) {
@@ -960,25 +957,34 @@
                 return;
             }
 
-            categories.push(categoryName);
-            categories.sort();
-            saveCategories();
-            updateCategorySelects();
-            document.getElementById('newCategoryName').value = '';
-            alert('✅ Categoría agregada correctamente');
+            try {
+                await saveCategoryToDB(categoryName);
+                categories.push(categoryName);
+                categories.sort();
+                updateCategorySelects();
+                document.getElementById('newCategoryName').value = '';
+                alert('✅ Categoría agregada correctamente');
+            } catch (error) {
+                alert('❌ Error al agregar categoría: ' + error.message);
+            }
         }
 
         // Eliminar categoría
-        function deleteCategory(categoryName) {
+        async function deleteCategory(categoryName) {
             if (!confirm(`¿Estás seguro de eliminar la categoría "${categoryName}"?
 
 Nota: Los productos con esta categoría no se eliminarán.`)) {
                 return;
             }
 
-            categories = categories.filter(cat => cat !== categoryName);
-            saveCategories();
-            updateCategorySelects();
+            try {
+                await deleteCategoryFromDB(categoryName);
+                categories = categories.filter(cat => cat !== categoryName);
+                updateCategorySelects();
+                alert('✅ Categoría eliminada correctamente');
+            } catch (error) {
+                alert('❌ Error al eliminar categoría: ' + error.message);
+            }
         }
 
         // Actualizar lista de categorías en el modal
@@ -1005,7 +1011,7 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
 
         // Inicializar
         document.addEventListener('DOMContentLoaded', async function() {
-            loadCategories();
+            await loadCategories();
             await loadProducts();
             await loadSales();
             await loadClients();

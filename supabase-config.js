@@ -442,3 +442,56 @@ async function migrateLocalStorageToSupabase() {
 }
 
 console.log('✅ Supabase configurado correctamente');
+
+// ============================================
+// FUNCIONES DE CATEGORÍAS
+// ============================================
+
+async function loadCategoriesFromDB() {
+    try {
+        const { data, error } = await supabase
+            .from('categories')
+            .select('*')
+            .order('name', { ascending: true });
+
+        if (error) throw error;
+
+        return data.map(c => c.name);
+    } catch (error) {
+        console.error('Error al cargar categorías:', error);
+        // Si hay error, devolver categorías predeterminadas
+        return ['Remeras', 'Recuerdos', 'Botellas', 'Stickers', 'Gorras', 'Llaveros', 'Tazas', 'Materiales', 'Telas', 'Otros'];
+    }
+}
+
+async function saveCategoryToDB(categoryName) {
+    try {
+        const { data, error } = await supabase
+            .from('categories')
+            .insert([{ name: categoryName }])
+            .select();
+
+        if (error) throw error;
+
+        return data[0];
+    } catch (error) {
+        console.error('Error al guardar categoría:', error);
+        throw error;
+    }
+}
+
+async function deleteCategoryFromDB(categoryName) {
+    try {
+        const { error } = await supabase
+            .from('categories')
+            .delete()
+            .eq('name', categoryName);
+
+        if (error) throw error;
+
+        return true;
+    } catch (error) {
+        console.error('Error al eliminar categoría:', error);
+        throw error;
+    }
+}
