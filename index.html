@@ -420,7 +420,95 @@
             color: #1976d2;
             margin-bottom: 5px;
         }
-    </style>
+    
+        /* Selector personalizado con imágenes */
+        .custom-select-container {
+            position: relative;
+            width: 100%;
+        }
+        
+        .custom-select-button {
+            width: 100%;
+            padding: 12px;
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.3s;
+        }
+        
+        .custom-select-button:hover {
+            border-color: #667eea;
+        }
+        
+        .custom-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            margin-top: 5px;
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 1000;
+        }
+        
+        .product-option {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background 0.2s;
+        }
+        
+        .product-option:hover {
+            background: #f5f5f5;
+        }
+        
+        .product-option:last-child {
+            border-bottom: none;
+        }
+        
+        .product-option-image {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 5px;
+            margin-right: 12px;
+            border: 1px solid #ddd;
+        }
+        
+        .product-option-no-image {
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f0f0f0;
+            border-radius: 5px;
+            margin-right: 12px;
+            font-size: 24px;
+        }
+        
+        .product-option-info {
+            flex: 1;
+        }
+        
+        .product-option-name {
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 3px;
+        }
+        
+        .product-option-details {
+            font-size: 12px;
+            color: #666;
+        }
+
+        </style>
 </head>
 <body>
     <div class="container">
@@ -570,16 +658,20 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label>Seleccionar Producto</label>
-                        <select id="saleProduct" onchange="updateSalePrice()">
-                            <option value="">-- Seleccionar --</option>
-                        </select>
-                        <!-- Vista previa de imagen del producto -->
-                        <div id="saleProductImagePreview" style="margin-top:10px;padding:10px;background:#f5f5f5;border-radius:8px;text-align:center;display:none;">
-                            <img id="saleProductImage" style="max-width:100%;max-height:200px;border-radius:8px;border:2px solid #ddd;object-fit:contain;display:none;">
-                            <div id="saleProductNoImage" style="padding:20px;color:#999;display:none;">
-                                📦 Sin imagen de referencia
+                        <!-- Selector personalizado con imágenes -->
+                        <div class="custom-select-container">
+                            <div id="customSelectButton" class="custom-select-button" onclick="toggleProductDropdown()">
+                                <span id="selectedProductText">-- Seleccionar Producto --</span>
+                                <span style="float:right;">▼</span>
+                            </div>
+                            <div id="productDropdown" class="custom-dropdown" style="display:none;">
+                                <input type="text" id="productSearchInput" placeholder="🔍 Buscar producto..." onkeyup="filterProductOptions()" style="width:100%;padding:10px;border:none;border-bottom:2px solid #eee;box-sizing:border-box;">
+                                <div id="productOptionsList" style="max-height:300px;overflow-y:auto;">
+                                    <!-- Las opciones se cargan dinámicamente -->
+                                </div>
                             </div>
                         </div>
+                        <input type="hidden" id="saleProduct">
                     </div>
                     <div class="form-group">
                         <label>Cantidad <span id="saleUnitLabel"></span></label>
@@ -1491,17 +1583,96 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
             });
         }
 
+
+        // ===== FUNCIONES PARA SELECTOR PERSONALIZADO DE PRODUCTOS =====
+        
+        function toggleProductDropdown() {
+            const dropdown = document.getElementById('productDropdown');
+            dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+        }
+        
+        function closeProductDropdown() {
+            document.getElementById('productDropdown').style.display = 'none';
+        }
+        
+        // Cerrar dropdown al hacer click fuera
+        document.addEventListener('click', function(event) {
+            const container = document.querySelector('.custom-select-container');
+            if (container && !container.contains(event.target)) {
+                closeProductDropdown();
+            }
+        });
+        
+        function selectProduct(productId) {
+            const product = products.find(p => p.id === productId);
+            if (!product) return;
+            
+            // Actualizar campo oculto
+            document.getElementById('saleProduct').value = productId;
+            
+            // Actualizar texto del botón
+            document.getElementById('selectedProductText').textContent = product.name + ' (' + formatUnit(product.stock, product.unit) + ')';
+            
+            // Cerrar dropdown
+            closeProductDropdown();
+            
+            // Actualizar precio
+            updateSalePrice();
+        }
+        
+        function filterProductOptions() {
+            const searchTerm = document.getElementById('productSearchInput').value.toLowerCase();
+            const options = document.querySelectorAll('.product-option');
+            
+            options.forEach(option => {
+                const text = option.textContent.toLowerCase();
+                option.style.display = text.includes(searchTerm) ? 'flex' : 'none';
+            });
+        }
+        
+        function loadProductOptions() {
+            const optionsList = document.getElementById('productOptionsList');
+            optionsList.innerHTML = '';
+            
+            // Filtrar solo productos con stock
+            const availableProducts = products.filter(p => p.stock > 0);
+            
+            if (availableProducts.length === 0) {
+                optionsList.innerHTML = '<div style="padding:20px;text-align:center;color:#999;">No hay productos disponibles</div>';
+                return;
+            }
+            
+            availableProducts.forEach(product => {
+                const option = document.createElement('div');
+                option.className = 'product-option';
+                option.onclick = () => selectProduct(product.id);
+                
+                // Imagen o placeholder
+                let imageHTML = '';
+                if (product.imageUrl && product.imageUrl.trim() !== '') {
+                    imageHTML = `<img src="${product.imageUrl}" class="product-option-image" alt="${product.name}">`;
+                } else {
+                    imageHTML = '<div class="product-option-no-image">📦</div>';
+                }
+                
+                option.innerHTML = `
+                    ${imageHTML}
+                    <div class="product-option-info">
+                        <div class="product-option-name">${product.name}</div>
+                        <div class="product-option-details">
+                            Stock: ${formatUnit(product.stock, product.unit)} | Precio: ${formatGuaranies(product.price)}
+                        </div>
+                    </div>
+                `;
+                
+                optionsList.appendChild(option);
+            });
+        }
+
         // Cargar formulario de ventas
         async function loadSalesForm() {
-            // Cargar productos
-            const selectProduct = document.getElementById('saleProduct');
-            selectProduct.innerHTML = '<option value="">-- Seleccionar --</option>';
-
-            products.forEach(product => {
-                if (product.stock > 0) {
-                    selectProduct.innerHTML += `<option value="${product.id}">${product.name} (${formatUnit(product.stock, product.unit)})</option>`;
-                }
-            });
+            // Cargar productos en selector personalizado
+            loadProductOptions();
 
             // Cargar clientes
             const selectCustomer = document.getElementById('saleCustomer');
@@ -1517,37 +1688,16 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
         // Actualizar precio de venta
         function updateSalePrice() {
             const productId = parseInt(document.getElementById('saleProduct').value);
-            const imagePreviewContainer = document.getElementById('saleProductImagePreview');
-            const imageElement = document.getElementById('saleProductImage');
-            const noImageElement = document.getElementById('saleProductNoImage');
             
             if (productId) {
                 const product = products.find(p => p.id === productId);
-                console.log('Producto seleccionado:', product); // Debug
-                console.log('ImageUrl:', product.imageUrl); // Debug
-                
                 document.getElementById('salePrice').value = product.price;
                 document.getElementById('saleUnitLabel').textContent = `(${product.unit})`;
-                
-                // Mostrar contenedor
-                imagePreviewContainer.style.display = 'block';
-                
-                // Mostrar imagen del producto si existe
-                if (product.imageUrl && product.imageUrl.trim() !== '') {
-                    imageElement.src = product.imageUrl;
-                    imageElement.style.display = 'block';
-                    noImageElement.style.display = 'none';
-                } else {
-                    imageElement.style.display = 'none';
-                    noImageElement.style.display = 'block';
-                }
-                
                 updateSaleTotal();
             } else {
                 document.getElementById('salePrice').value = '';
                 document.getElementById('saleTotal').value = '';
                 document.getElementById('saleUnitLabel').textContent = '';
-                imagePreviewContainer.style.display = 'none';
             }
         }
 
@@ -1608,6 +1758,7 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
 
                 // Limpiar formulario
                 document.getElementById('saleProduct').value = '';
+                document.getElementById('selectedProductText').textContent = '-- Seleccionar Producto --';
                 document.getElementById('saleQuantity').value = 1;
                 document.getElementById('salePrice').value = '';
                 document.getElementById('saleTotal').value = '';
