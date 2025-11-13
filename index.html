@@ -507,17 +507,6 @@
                 <div class="search-bar">
                     <input type="text" id="searchProducts" placeholder="🔍 Buscar productos..." onkeyup="filterProducts()">
                     <select id="categoryFilter" onchange="filterProducts()">
-                        <option value="">Todas las categorías</option>
-                        <option value="Remeras">Remeras</option>
-                        <option value="Recuerdos">Recuerdos</option>
-                        <option value="Botellas">Botellas</option>
-                        <option value="Stickers">Stickers</option>
-                        <option value="Gorras">Gorras</option>
-                        <option value="Llaveros">Llaveros</option>
-                        <option value="Tazas">Tazas</option>
-                        <option value="Materiales">Materiales</option>
-                        <option value="Telas">Telas</option>
-                        <option value="Otros">Otros</option>
                     </select>
                 </div>
 
@@ -725,18 +714,8 @@
                     <div class="form-group">
                         <label>Categoría *</label>
                         <select id="productCategory" required>
-                            <option value="">-- Seleccionar --</option>
-                            <option value="Remeras">Remeras</option>
-                            <option value="Recuerdos">Recuerdos</option>
-                            <option value="Botellas">Botellas</option>
-                            <option value="Stickers">Stickers</option>
-                            <option value="Gorras">Gorras</option>
-                            <option value="Llaveros">Llaveros</option>
-                            <option value="Tazas">Tazas</option>
-                            <option value="Materiales">Materiales</option>
-                            <option value="Telas">Telas</option>
-                            <option value="Otros">Otros</option>
                         </select>
+                        <button type="button" class="btn btn-secondary" onclick="openCategoryModal()" style="margin-top:10px;width:100%;">⚙️ Gestionar Categorías</button>
                     </div>
                 </div>
 
@@ -895,9 +874,138 @@
         let editingProductId = null;
         let editingClientId = null;
         let selectedImageFile = null;
+        let currentCameraMode = 'environment'; // 'user' para frontal, 'environment' para trasera
+
+        // Categorías del sistema
+        let categories = [];
+
+        // Cargar categorías desde localStorage o usar predeterminadas
+        function loadCategories() {
+            const savedCategories = localStorage.getItem('categories');
+            if (savedCategories) {
+                categories = JSON.parse(savedCategories);
+            } else {
+                // Categorías predeterminadas
+                categories = [
+                    'Remeras', 'Recuerdos', 'Botellas', 'Stickers', 
+                    'Gorras', 'Llaveros', 'Tazas', 'Materiales', 'Telas', 'Otros'
+                ];
+                saveCategories();
+            }
+            updateCategorySelects();
+        }
+
+        // Guardar categorías en localStorage
+        function saveCategories() {
+            localStorage.setItem('categories', JSON.stringify(categories));
+        }
+
+        // Actualizar todos los selects de categorías
+        function updateCategorySelects() {
+            // Select del formulario de productos
+            const productCategorySelect = document.getElementById('productCategory');
+            if (productCategorySelect) {
+                const currentValue = productCategorySelect.value;
+                productCategorySelect.innerHTML = '<option value="">-- Seleccionar --</option>';
+                categories.forEach(cat => {
+                    productCategorySelect.innerHTML += `<option value="${cat}">${cat}</option>`;
+                });
+                if (currentValue && categories.includes(currentValue)) {
+                    productCategorySelect.value = currentValue;
+                }
+            }
+
+            // Select del filtro
+            const categoryFilter = document.getElementById('categoryFilter');
+            if (categoryFilter) {
+                const currentFilter = categoryFilter.value;
+                categoryFilter.innerHTML = '<option value="">Todas las categorías</option>';
+                categories.forEach(cat => {
+                    categoryFilter.innerHTML += `<option value="${cat}">${cat}</option>`;
+                });
+                if (currentFilter && categories.includes(currentFilter)) {
+                    categoryFilter.value = currentFilter;
+                }
+            }
+
+            // Lista en el modal de gestión
+            if (document.getElementById('categoriesList')) {
+                updateCategoriesList();
+            }
+        }
+
+        // Abrir modal de categorías
+        function openCategoryModal() {
+            document.getElementById('categoryModal').classList.add('active');
+            updateCategoriesList();
+        }
+
+        // Cerrar modal de categorías
+        function closeCategoryModal() {
+            document.getElementById('categoryModal').classList.remove('active');
+            document.getElementById('newCategoryName').value = '';
+        }
+
+        // Agregar nueva categoría
+        function addCategory() {
+            const categoryName = document.getElementById('newCategoryName').value.trim();
+            
+            if (!categoryName) {
+                alert('⚠️ Por favor ingresa un nombre para la categoría');
+                return;
+            }
+
+            if (categories.includes(categoryName)) {
+                alert('⚠️ Esta categoría ya existe');
+                return;
+            }
+
+            categories.push(categoryName);
+            categories.sort();
+            saveCategories();
+            updateCategorySelects();
+            document.getElementById('newCategoryName').value = '';
+            alert('✅ Categoría agregada correctamente');
+        }
+
+        // Eliminar categoría
+        function deleteCategory(categoryName) {
+            if (!confirm(`¿Estás seguro de eliminar la categoría "${categoryName}"?
+
+Nota: Los productos con esta categoría no se eliminarán.`)) {
+                return;
+            }
+
+            categories = categories.filter(cat => cat !== categoryName);
+            saveCategories();
+            updateCategorySelects();
+        }
+
+        // Actualizar lista de categorías en el modal
+        function updateCategoriesList() {
+            const list = document.getElementById('categoriesList');
+            if (!list) return;
+            
+            list.innerHTML = '';
+
+            if (categories.length === 0) {
+                list.innerHTML = '<p style="color:#999;text-align:center;padding:20px;">No hay categorías</p>';
+                return;
+            }
+
+            categories.forEach(cat => {
+                list.innerHTML += `
+                    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px;border-bottom:1px solid #eee;">
+                        <span style="font-weight:500;">${cat}</span>
+                        <button class="btn btn-danger" onclick="deleteCategory('${cat}')" style="padding:5px 10px;font-size:12px;">🗑️ Eliminar</button>
+                    </div>
+                `;
+            });
+        }
 
         // Inicializar
         document.addEventListener('DOMContentLoaded', async function() {
+            loadCategories();
             await loadProducts();
             await loadSales();
             await loadClients();
@@ -1147,30 +1255,66 @@
 
         async function takePhoto() {
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-
-                // Crear modal con video
-                const modal = document.createElement('div');
-                modal.innerHTML = `
-                    <div style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:10000;display:flex;align-items:center;justify-content:center;">
-                        <div style="background:white;padding:20px;border-radius:10px;max-width:90%;max-height:90%;">
-                            <video id="cameraVideo" autoplay style="max-width:100%;"></video>
-                            <div style="margin-top:10px;text-align:center;">
-                                <button class="btn btn-primary" onclick="capturePhoto()">📸 Capturar</button>
-                                <button class="btn btn-secondary" onclick="closeCamera()">❌ Cancelar</button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                document.body.appendChild(modal);
-
-                const video = document.getElementById('cameraVideo');
-                video.srcObject = stream;
-
-                window.currentStream = stream;
-                window.cameraModal = modal;
+                await startCamera();
             } catch (error) {
                 alert('❌ No se pudo acceder a la cámara: ' + error.message);
+            }
+        }
+
+        async function startCamera() {
+            // Detener stream anterior si existe
+            if (window.currentStream) {
+                window.currentStream.getTracks().forEach(track => track.stop());
+            }
+
+            const constraints = {
+                video: {
+                    facingMode: currentCameraMode
+                }
+            };
+
+            const stream = await navigator.mediaDevices.getUserMedia(constraints);
+
+            // Si ya existe el modal, solo actualizar el video
+            if (window.cameraModal) {
+                const video = document.getElementById('cameraVideo');
+                video.srcObject = stream;
+                window.currentStream = stream;
+                return;
+            }
+
+            // Crear modal con video
+            const modal = document.createElement('div');
+            modal.innerHTML = `
+                <div style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);z-index:10000;display:flex;align-items:center;justify-content:center;">
+                    <div style="background:white;padding:20px;border-radius:10px;max-width:90%;max-height:90%;">
+                        <video id="cameraVideo" autoplay playsinline style="max-width:100%;border-radius:8px;"></video>
+                        <div style="margin-top:15px;text-align:center;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+                            <button class="btn btn-primary" onclick="capturePhoto()">📸 Capturar</button>
+                            <button class="btn btn-secondary" onclick="flipCamera()">🔄 Voltear Cámara</button>
+                            <button class="btn btn-secondary" onclick="closeCamera()">❌ Cancelar</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            const video = document.getElementById('cameraVideo');
+            video.srcObject = stream;
+
+            window.currentStream = stream;
+            window.cameraModal = modal;
+        }
+
+        async function flipCamera() {
+            // Cambiar entre frontal y trasera
+            currentCameraMode = currentCameraMode === 'user' ? 'environment' : 'user';
+            try {
+                await startCamera();
+            } catch (error) {
+                alert('❌ No se pudo cambiar la cámara: ' + error.message);
+                // Volver al modo anterior si falla
+                currentCameraMode = currentCameraMode === 'user' ? 'environment' : 'user';
             }
         }
 
@@ -1831,5 +1975,30 @@
             }
         }
     </script>
-</body>
+
+    <!-- MODAL DE CATEGORÍAS -->
+    <div id="categoryModal" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h2>⚙️ Gestionar Categorías</h2>
+                <span class="close-btn" onclick="closeCategoryModal()">✖</span>
+            </div>
+            <div class="modal-body">
+                <div style="margin-bottom:20px;">
+                    <label>Nueva Categoría</label>
+                    <div style="display:flex;gap:10px;">
+                        <input type="text" id="newCategoryName" placeholder="Nombre de la categoría" style="flex:1;">
+                        <button class="btn btn-primary" onclick="addCategory()">➕ Agregar</button>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 style="margin-bottom:10px;">Categorías actuales:</h3>
+                    <div id="categoriesList" style="max-height:300px;overflow-y:auto;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    </body>
 </html>
