@@ -531,6 +531,7 @@
                                 <th>Categoría</th>
                                 <th>Stock</th>
                                 <th>Precio</th>
+                                <th>Imagen</th>
                                 <th>Estado</th>
                                 <th>Acciones</th>
                             </tr>
@@ -681,6 +682,41 @@
             <form id="productForm" onsubmit="saveProduct(event)">
                 <input type="hidden" id="productId">
 
+                <!-- Sección de vista previa del producto (solo visible en edición) -->
+                <div id="productDetailView" style="display:none;background:#f5f5f5;padding:20px;border-radius:8px;margin-bottom:20px;">
+                    <div style="display:grid;grid-template-columns:200px 1fr;gap:20px;align-items:start;">
+                        <div>
+                            <img id="detailProductImage" style="width:100%;border-radius:8px;border:2px solid #ddd;display:none;">
+                            <div id="noImagePlaceholder" style="width:100%;height:200px;background:#e0e0e0;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#999;">
+                                📦 Sin imagen
+                            </div>
+                        </div>
+                        <div>
+                            <h3 id="detailProductName" style="margin:0 0 15px 0;color:#667eea;"></h3>
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;">
+                                <div style="background:white;padding:15px;border-radius:8px;border-left:4px solid #ff6b6b;">
+                                    <div style="font-size:12px;color:#666;margin-bottom:5px;">💰 Precio de Compra</div>
+                                    <div id="detailCostPrice" style="font-size:20px;font-weight:bold;color:#ff6b6b;"></div>
+                                </div>
+                                <div style="background:white;padding:15px;border-radius:8px;border-left:4px solid #51cf66;">
+                                    <div style="font-size:12px;color:#666;margin-bottom:5px;">💵 Precio de Venta</div>
+                                    <div id="detailSalePrice" style="font-size:20px;font-weight:bold;color:#51cf66;"></div>
+                                </div>
+                            </div>
+                            <div style="margin-top:15px;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                                <div>
+                                    <span style="font-size:12px;color:#666;">Stock:</span>
+                                    <strong id="detailStock" style="margin-left:5px;"></strong>
+                                </div>
+                                <div>
+                                    <span style="font-size:12px;color:#666;">Estado:</span>
+                                    <span id="detailStatus" style="margin-left:5px;"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="form-row">
                     <div class="form-group">
                         <label>Código del Producto *</label>
@@ -753,10 +789,26 @@
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label>Descripción</label>
-                    <textarea id="productDescription" rows="3" placeholder="Descripción del producto (opcional)" oninput="capitalizeFirst(this)"></textarea>
-                </div>
+               <!-- Campo de Foto -->
+<div class="form-group">
+    <label>📸 Foto del Producto (Opcional)</label>
+    <div id="dropZone" style="border:2px dashed #ccc;border-radius:5px;padding:20px;text-align:center;background:#f9f9f9;margin-bottom:10px;cursor:pointer;"
+         ondragover="event.preventDefault();this.style.background='#e3f2fd';"
+         ondragleave="this.style.background='#f9f9f9';"
+         ondrop="handleDrop(event)"
+         onclick="document.getElementById('productImage').click()">
+        <p style="margin:0;color:#666;">🖼️ Arrastra una imagen aquí o haz clic para seleccionar</p>
+    </div>
+    <div style="display:flex;gap:10px;margin-bottom:10px;">
+        <input type="file" id="productImage" accept="image/*" style="display:none;" onchange="handleImageSelect(event)">
+        <button type="button" class="btn btn-primary" onclick="document.getElementById('productImage').click()">📁 Subir Archivo</button>
+        <button type="button" class="btn btn-primary" onclick="takePhoto()">📷 Tomar Foto</button>
+    </div>
+    <div id="imagePreview" style="margin-top:10px;display:none;">
+        <img id="previewImg" style="max-width:200px;max-height:200px;border-radius:5px;border:2px solid #ddd;">
+        <button type="button" class="btn btn-danger" onclick="clearImage()" style="display:block;margin-top:10px;width:200px;">🗑️ Eliminar Foto</button>
+    </div>
+</div>
 
                 <div style="display: flex; gap: 10px; margin-top: 20px;">
                     <button type="submit" class="btn btn-success" style="flex: 1;">💾 Guardar</button>
@@ -842,6 +894,8 @@
         // Variables globales
         let editingProductId = null;
         let editingClientId = null;
+        let selectedImageFile = null;
+
 
         // Inicializar
         document.addEventListener('DOMContentLoaded', async function() {
@@ -904,9 +958,39 @@
                     document.getElementById('productMinStock').value = product.minStock || 5;
                     document.getElementById('productDescription').value = product.description || '';
                     editingProductId = productId;
+
+                    // Mostrar vista detallada del producto
+                    document.getElementById('productDetailView').style.display = 'block';
+                    document.getElementById('detailProductName').textContent = product.name + (product.brand ? ` - ${product.brand}` : '');
+                    document.getElementById('detailCostPrice').textContent = formatGuaranies(product.cost || 0);
+                    document.getElementById('detailSalePrice').textContent = formatGuaranies(product.price);
+                    document.getElementById('detailStock').textContent = formatUnit(product.stock, product.unit);
+
+                    // Calcular estado
+                    const stockStatus = product.stock <= product.minStock ?
+                        '<span class="badge badge-danger">Stock Bajo</span>' :
+                        product.stock <= product.minStock * 2 ?
+                        '<span class="badge badge-warning">Stock Medio</span>' :
+                        '<span class="badge badge-success">Stock OK</span>';
+                    document.getElementById('detailStatus').innerHTML = stockStatus;
+
+                    // Mostrar imagen en la vista detallada
+                    if (product.imageUrl) {
+                        document.getElementById('detailProductImage').src = product.imageUrl;
+                        document.getElementById('detailProductImage').style.display = 'block';
+                        document.getElementById('noImagePlaceholder').style.display = 'none';
+
+                        // También en el preview del formulario
+                        document.getElementById('previewImg').src = product.imageUrl;
+                        document.getElementById('imagePreview').style.display = 'block';
+                    } else {
+                        document.getElementById('detailProductImage').style.display = 'none';
+                        document.getElementById('noImagePlaceholder').style.display = 'flex';
+                    }
                 }
             } else {
                 document.getElementById('modalTitle').textContent = 'Agregar Producto';
+                document.getElementById('productDetailView').style.display = 'none';
                 editingProductId = null;
                 // Generar código automático para producto nuevo
                 document.getElementById('productCode').value = generateProductCode();
@@ -916,6 +1000,7 @@
         function closeProductModal() {
             document.getElementById('productModal').classList.remove('active');
             editingProductId = null;
+            clearImage();
         }
 
         // Guardar producto
@@ -932,8 +1017,16 @@
                 cost: parseFormattedPrice(document.getElementById('productCost').value),
                 price: parseFormattedPrice(document.getElementById('productPrice').value),
                 minStock: parseFloat(document.getElementById('productMinStock').value) || 5,
-                description: document.getElementById('productDescription').value
+                description: document.getElementById('productDescription')?.value || ''
             };
+
+            // Si hay imagen, subirla primero
+            if (selectedImageFile && productData.code) {
+                const imageUrl = await uploadProductImage(selectedImageFile, productData.code);
+                if (imageUrl) {
+                    productData.imageUrl = imageUrl;
+                }
+            }
 
             try {
                 if (editingProductId) {
@@ -980,6 +1073,143 @@
             }
         }
 
+
+
+        // ===== FUNCIONES PARA MANEJO DE FOTOS =====
+        function handleImageSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // Validar tamaño (5MB máximo)
+            if (file.size > 5 * 1024 * 1024) {
+                alert('❌ La imagen es muy grande. Máximo 5MB.');
+                return;
+            }
+
+            // Validar formato
+            if (!file.type.match('image/(jpeg|jpg|png|webp)')) {
+                alert('❌ Formato no válido. Usa JPG, PNG o WEBP.');
+                return;
+            }
+
+            selectedImageFile = file;
+
+            // Mostrar preview
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                document.getElementById('previewImg').src = e.target.result;
+                document.getElementById('imagePreview').style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function handleDrop(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            document.getElementById('dropZone').style.background = '#f9f9f9';
+
+            const files = event.dataTransfer.files;
+            if (files.length > 0) {
+                const file = files[0];
+
+                // Validar que sea imagen
+                if (!file.type.match('image.*')) {
+                    alert('❌ Por favor arrastra una imagen');
+                    return;
+                }
+
+                // Validar tamaño (5MB máximo)
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('❌ La imagen es muy grande. Máximo 5MB.');
+                    return;
+                }
+
+                selectedImageFile = file;
+
+                // Mostrar preview
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    document.getElementById('previewImg').src = e.target.result;
+                    document.getElementById('imagePreview').style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        async function takePhoto() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+
+                // Crear modal con video
+                const modal = document.createElement('div');
+                modal.innerHTML = `
+                    <div style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:10000;display:flex;align-items:center;justify-content:center;">
+                        <div style="background:white;padding:20px;border-radius:10px;max-width:90%;max-height:90%;">
+                            <video id="cameraVideo" autoplay style="max-width:100%;"></video>
+                            <div style="margin-top:10px;text-align:center;">
+                                <button class="btn btn-primary" onclick="capturePhoto()">📸 Capturar</button>
+                                <button class="btn btn-secondary" onclick="closeCamera()">❌ Cancelar</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+
+                const video = document.getElementById('cameraVideo');
+                video.srcObject = stream;
+
+                window.currentStream = stream;
+                window.cameraModal = modal;
+            } catch (error) {
+                alert('❌ No se pudo acceder a la cámara: ' + error.message);
+            }
+        }
+
+        function capturePhoto() {
+            const video = document.getElementById('cameraVideo');
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            canvas.getContext('2d').drawImage(video, 0, 0);
+
+            canvas.toBlob((blob) => {
+                selectedImageFile = new File([blob], 'photo.jpg', { type: 'image/jpeg' });
+
+                document.getElementById('previewImg').src = canvas.toDataURL();
+                document.getElementById('imagePreview').style.display = 'block';
+
+                closeCamera();
+            }, 'image/jpeg');
+        }
+
+        function closeCamera() {
+            if (window.currentStream) {
+                window.currentStream.getTracks().forEach(track => track.stop());
+            }
+            if (window.cameraModal) {
+                window.cameraModal.remove();
+            }
+        }
+
+        function clearImage() {
+            selectedImageFile = null;
+            document.getElementById('productImage').value = '';
+            document.getElementById('imagePreview').style.display = 'none';
+        }
+
+        function showImageModal(imageUrl) {
+            const modal = document.createElement('div');
+            modal.innerHTML = `
+                <div style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);z-index:10000;display:flex;align-items:center;justify-content:center;" onclick="this.parentElement.remove()">
+                    <div style="max-width:90%;max-height:90%;text-align:center;">
+                        <img src="${imageUrl}" style="max-width:100%;max-height:90vh;border-radius:10px;">
+                        <p style="color:white;margin-top:10px;">Click para cerrar</p>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
         // Formatear input de precio con punto decimal
         function formatPriceInput(input) {
             // Remover todo excepto números
@@ -1022,7 +1252,7 @@
                 if (products.length === 0) {
                     tbody.innerHTML = `
                         <tr>
-                            <td colspan="8" class="empty-state">
+                            <td colspan="9" class="empty-state">
                                 <div class="empty-state-icon">📦</div>
                                 <div>No hay productos registrados</div>
                                 <button class="btn btn-primary" style="margin-top: 20px;" onclick="openProductModal()">Agregar Primer Producto</button>
@@ -1049,6 +1279,7 @@
                             <td>${product.category}</td>
                             <td><strong>${formatUnit(product.stock, product.unit)}</strong></td>
                             <td><strong>${formatGuaranies(product.price)}</strong></td>
+                             <td>${product.imageUrl ? `<img src="${product.imageUrl}" style="width:50px;height:50px;object-fit:cover;border-radius:5px;cursor:pointer;" onclick='showImageModal("${product.imageUrl}")'>` : '❌'}</td>
                             <td>${stockStatus}</td>
                             <td class="action-btns">
                                 <button class="action-btn btn-primary" onclick="openProductModal(${product.id})">✏️ Editar</button>

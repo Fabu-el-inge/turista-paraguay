@@ -10,6 +10,65 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ============================================
+// FUNCIONES DE STORAGE (IMÁGENES)
+// ============================================
+
+async function uploadProductImage(file, productCode) {
+    try {
+        // Generar nombre único para la imagen
+        const timestamp = Date.now();
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${productCode}_${timestamp}.${fileExt}`;
+        const filePath = `products/${fileName}`;
+
+        // Subir archivo a Supabase Storage
+        const { data, error } = await supabase.storage
+            .from('product-images')
+            .upload(filePath, file, {
+                cacheControl: '3600',
+                upsert: false
+            });
+
+        if (error) throw error;
+
+        // Obtener URL pública de la imagen
+        const { data: publicUrlData } = supabase.storage
+            .from('product-images')
+            .getPublicUrl(filePath);
+
+        return publicUrlData.publicUrl;
+    } catch (error) {
+        console.error('Error al subir imagen:', error);
+        alert('❌ Error al subir imagen: ' + error.message);
+        return null;
+    }
+}
+
+async function deleteProductImage(imageUrl) {
+    try {
+        if (!imageUrl) return true;
+
+        // Extraer el path de la URL
+        const urlParts = imageUrl.split('/product-images/');
+        if (urlParts.length < 2) return true;
+
+        const filePath = urlParts[1];
+
+        const { error } = await supabase.storage
+            .from('product-images')
+            .remove([`products/${filePath.split('/').pop()}`]);
+
+        if (error) throw error;
+
+        return true;
+    } catch (error) {
+        console.error('Error al eliminar imagen:', error);
+        // No mostrar alerta, solo log
+        return false;
+    }
+}
+
+// ============================================
 // FUNCIONES DE PRODUCTOS
 // ============================================
 
@@ -34,7 +93,8 @@ async function loadProductsFromDB() {
             cost: parseFloat(p.cost),
             price: parseFloat(p.price),
             minStock: p.min_stock,
-            description: p.description || ''
+            description: p.description || '',
+            imageUrl: p.image_url || ''
         }));
     } catch (error) {
         console.error('Error al cargar productos:', error);
@@ -55,7 +115,8 @@ async function saveProductToDB(product) {
             cost: product.cost,
             price: product.price,
             min_stock: product.minStock,
-            description: product.description || null
+            description: product.description || null,
+            image_url: product.imageUrl || null
         };
 
         const { data, error } = await supabase
@@ -85,7 +146,8 @@ async function updateProductInDB(id, product) {
             cost: product.cost,
             price: product.price,
             min_stock: product.minStock,
-            description: product.description || null
+            description: product.description || null,
+            image_url: product.imageUrl || null
         };
 
         const { data, error } = await supabase
@@ -106,6 +168,21 @@ async function updateProductInDB(id, product) {
 
 async function deleteProductFromDB(id) {
     try {
+        // Primero obtener el producto para saber si tiene imagen
+        const { data: product, error: fetchError } = await supabase
+            .from('products')
+            .select('image_url')
+            .eq('id', id)
+            .single();
+
+        if (fetchError) throw fetchError;
+
+        // Si tiene imagen, eliminarla del Storage
+        if (product && product.image_url) {
+            await deleteProductImage(product.image_url);
+        }
+
+        // Luego eliminar el producto
         const { error } = await supabase
             .from('products')
             .delete()
