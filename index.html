@@ -682,11 +682,11 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label>Precio Unitario</label>
-                        <input type="text" id="salePrice" readonly style="text-align:right;">
+                        <input type="text" id="salePrice" readonly style="text-align:left; font-weight:bold;">
                     </div>
                     <div class="form-group">
                         <label>Total</label>
-                        <input type="text" id="saleTotal" readonly style="font-weight: bold; font-size: 18px; text-align:right;">
+                        <input type="text" id="saleTotal" readonly style="font-weight:bold; font-size:18px; text-align:left;">
                     </div>
                 </div>
 
@@ -1278,14 +1278,14 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
 
         // Formatear guaraníes con separador de miles (punto decimal)
         function formatGuaranies(amount) {
-            if (amount === null || amount === undefined || amount === '') return '₲ 0';
+            if (amount === null || amount === undefined || amount === '') return 'Gs. 0';
             // Convertir a número y redondear
             const num = Math.round(Number(amount));
             // Convertir a string
             let str = num.toString();
             // Aplicar separador de miles (punto)
             str = str.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-            const result = `₲ ${str}`;
+            const result = `Gs. ${str}`;
             console.log(`formatGuaranies(${amount}) = ${result}`); // DEBUG
             return result;
         }
