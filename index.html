@@ -1303,22 +1303,22 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
         function formatNumberWithDots(number) {
             if (!number) return '';
             const str = number.toString();
-            return str.replace(/B(?=(d{3})+(?!d))/g, '.');
+            return str.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
         }
 
         // Formatear número de documento con puntos
         function formatDocumentNumber(input) {
             // Obtener solo números
-            let value = input.value.replace(/D/g, '');
-            
+            let value = input.value.replace(/\D/g, '');
+
             // Aplicar formato con puntos cada 3 dígitos
             if (value.length > 0) {
-                value = value.replace(/B(?=(d{3})+(?!d))/g, '.');
+                value = value.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
             }
-            
+
             input.value = value;
             // Guardar valor sin formato en data attribute
-            input.dataset.rawValue = value.replace(/./g, '');
+            input.dataset.rawValue = value.replace(/\./g, '');
         }
 
         // ===== FUNCIONES PARA MANEJO DE FOTOS =====
