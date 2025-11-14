@@ -920,7 +920,7 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label>Número de Documento *</label>
-                        <input type="text" id="clientDocNumber" required placeholder="Ej: 1234567">
+                        <input type="text" id="clientDocNumber" required placeholder="Ej: 1.234.567" oninput="formatDocumentNumber(this)">
                     </div>
                     <div class="form-group">
                         <label>Nombre Completo *</label>
@@ -1295,6 +1295,30 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
             if (input.value.length > 0) {
                 input.value = input.value.charAt(0).toUpperCase() + input.value.slice(1);
             }
+        }
+
+
+
+        // Formatear número con puntos (auxiliar)
+        function formatNumberWithDots(number) {
+            if (!number) return '';
+            const str = number.toString();
+            return str.replace(/B(?=(d{3})+(?!d))/g, '.');
+        }
+
+        // Formatear número de documento con puntos
+        function formatDocumentNumber(input) {
+            // Obtener solo números
+            let value = input.value.replace(/D/g, '');
+            
+            // Aplicar formato con puntos cada 3 dígitos
+            if (value.length > 0) {
+                value = value.replace(/B(?=(d{3})+(?!d))/g, '.');
+            }
+            
+            input.value = value;
+            // Guardar valor sin formato en data attribute
+            input.dataset.rawValue = value.replace(/./g, '');
         }
 
         // ===== FUNCIONES PARA MANEJO DE FOTOS =====
@@ -2043,7 +2067,9 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
                     document.getElementById('clientModalTitle').textContent = 'Editar Cliente';
                     document.getElementById('clientCode').value = client.code;
                     document.getElementById('clientDocType').value = client.docType;
-                    document.getElementById('clientDocNumber').value = client.docNumber;
+                    const docInput = document.getElementById('clientDocNumber');
+                    docInput.value = formatNumberWithDots(client.docNumber);
+                    docInput.dataset.rawValue = client.docNumber;
                     document.getElementById('clientName').value = client.name;
                     document.getElementById('clientPhone').value = client.phone;
                     document.getElementById('clientEmail').value = client.email || '';
@@ -2069,10 +2095,11 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
         async function saveClient(event) {
             event.preventDefault();
 
+            const docInput = document.getElementById('clientDocNumber');
             const clientData = {
                 code: document.getElementById('clientCode').value,
                 docType: document.getElementById('clientDocType').value,
-                docNumber: document.getElementById('clientDocNumber').value,
+                docNumber: docInput.dataset.rawValue || docInput.value.replace(/./g, ''),
                 name: document.getElementById('clientName').value,
                 phone: document.getElementById('clientPhone').value,
                 email: document.getElementById('clientEmail').value,
