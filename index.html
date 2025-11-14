@@ -682,11 +682,11 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label>Precio Unitario</label>
-                        <input type="number" id="salePrice" readonly>
+                        <input type="text" id="salePrice" readonly style="text-align:right;">
                     </div>
                     <div class="form-group">
                         <label>Total</label>
-                        <input type="number" id="saleTotal" readonly style="font-weight: bold; font-size: 18px;">
+                        <input type="text" id="saleTotal" readonly style="font-weight: bold; font-size: 18px; text-align:right;">
                     </div>
                 </div>
 
@@ -1691,7 +1691,8 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
             
             if (productId) {
                 const product = products.find(p => p.id === productId);
-                document.getElementById('salePrice').value = product.price;
+                document.getElementById('salePrice').value = formatGuaranies(product.price);
+                document.getElementById('salePrice').dataset.rawValue = product.price; // Guardar valor numérico
                 document.getElementById('saleUnitLabel').textContent = `(${product.unit})`;
                 updateSaleTotal();
             } else {
@@ -1703,9 +1704,12 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
 
         // Actualizar total de venta
         function updateSaleTotal() {
-            const price = parseFloat(document.getElementById('salePrice').value) || 0;
+            const priceElement = document.getElementById('salePrice');
+            const price = parseFloat(priceElement.dataset.rawValue) || 0;
             const quantity = parseFloat(document.getElementById('saleQuantity').value) || 0;
-            document.getElementById('saleTotal').value = price * quantity;
+            const total = price * quantity;
+            document.getElementById('saleTotal').value = formatGuaranies(total);
+            document.getElementById('saleTotal').dataset.rawValue = total; // Guardar valor numérico
         }
 
         // Registrar venta
