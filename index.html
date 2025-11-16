@@ -871,8 +871,9 @@
 <div class="form-group">
     <label>📸 Foto del Producto (Opcional)</label>
     <div id="dropZone" style="border:2px dashed #ccc;border-radius:5px;padding:20px;text-align:center;background:#f9f9f9;margin-bottom:10px;cursor:pointer;"
-         ondragover="event.preventDefault();this.style.background='#e3f2fd';"
-         ondragleave="this.style.background='#f9f9f9';"
+         ondragenter="event.preventDefault();event.stopPropagation();this.style.background='#e3f2fd';"
+         ondragover="event.preventDefault();event.stopPropagation();this.style.background='#e3f2fd';"
+         ondragleave="event.preventDefault();event.stopPropagation();this.style.background='#f9f9f9';"
          ondrop="handleDrop(event)"
          onclick="document.getElementById('productImage').click()">
         <p style="margin:0;color:#666;">🖼️ Arrastra una imagen aquí o haz clic para seleccionar</p>
@@ -1352,7 +1353,18 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
         function handleDrop(event) {
             event.preventDefault();
             event.stopPropagation();
-            document.getElementById('dropZone').style.background = '#f9f9f9';
+
+            // Restaurar estilo
+            const dropZone = document.getElementById('dropZone');
+            if (dropZone) {
+                dropZone.style.background = '#f9f9f9';
+            }
+
+            // Verificar que hay archivos
+            if (!event.dataTransfer || !event.dataTransfer.files) {
+                console.log('No se encontraron archivos en el evento');
+                return;
+            }
 
             const files = event.dataTransfer.files;
             if (files.length > 0) {
