@@ -2266,10 +2266,20 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
             document.getElementById('totalValue').textContent = formatGuaranies(totalValue);
 
             // Ventas de hoy
-            const today = new Date().toDateString();
-            const todaySales = sales.filter(s => new Date(s.created_at).toDateString() === today);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0); // Inicio del día
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1); // Inicio del día siguiente
+
+            const todaySales = sales.filter(s => {
+                const saleDate = new Date(s.created_at || s.date);
+                return saleDate >= today && saleDate < tomorrow;
+            });
             const todayTotal = todaySales.reduce((sum, s) => sum + s.total, 0);
             document.getElementById('todaySales').textContent = formatGuaranies(todayTotal);
+
+            // Debug: mostrar en consola
+            console.log('Ventas de hoy:', todaySales.length, 'Total:', todayTotal);
 
             // Stock bajo
             const lowStock = products.filter(p => p.stock <= p.minStock);
