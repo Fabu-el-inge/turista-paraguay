@@ -1610,7 +1610,8 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
 
             rows.forEach(row => {
                 const text = row.textContent.toLowerCase();
-                const category = row.children[2]?.textContent || '';
+                // Categoría está en la columna 3 (índice 3): Código, Nombre, Marca, Categoría
+                const category = row.children[3]?.textContent || '';
 
                 const matchesSearch = text.includes(searchTerm);
                 const matchesCategory = !categoryFilter || category === categoryFilter;
