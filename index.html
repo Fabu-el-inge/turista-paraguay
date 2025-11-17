@@ -2954,12 +2954,19 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
 
         // Filtrar clientes
         function filterClients() {
-            const search = document.getElementById('searchClients').value.toLowerCase();
+            const search = document.getElementById('searchClients').value.toLowerCase().trim();
+            const searchNumbers = search.replace(/\D/g, ''); // Búsqueda sin puntos ni caracteres especiales
             const rows = document.querySelectorAll('#clientsTableBody tr');
 
             rows.forEach(row => {
                 const text = row.textContent.toLowerCase();
-                row.style.display = text.includes(search) ? '' : 'none';
+                const textNumbers = text.replace(/\D/g, ''); // Texto sin puntos ni caracteres especiales
+
+                // Buscar tanto en texto normal como en números sin formato
+                const matchesText = text.includes(search);
+                const matchesNumbers = searchNumbers.length > 0 && textNumbers.includes(searchNumbers);
+
+                row.style.display = (matchesText || matchesNumbers) ? '' : 'none';
             });
         }
 
