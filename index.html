@@ -975,6 +975,7 @@
                         <thead>
                             <tr>
                                 <th>Código</th>
+                                <th>Acciones</th>
                                 <th>Nombre</th>
                                 <th>Marca</th>
                                 <th>Categoría</th>
@@ -982,7 +983,6 @@
                                 <th>Precio de Venta</th>
                                 <th>Imagen</th>
                                 <th>Estado</th>
-                                <th>Acciones</th>
                             </tr>
                         </thead>
                         <tbody id="productsTableBody">
@@ -2191,6 +2191,11 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
                     tbody.innerHTML += `
                         <tr>
                             <td><strong>${product.code}</strong></td>
+                            <td class="action-btns">
+                                <button class="action-btn btn-info" onclick="showProductDetails(${product.id})" style="background: #17a2b8;">👁️ Ver</button>
+                                <button class="action-btn btn-primary" onclick="openProductModal(${product.id})">✏️ Editar</button>
+                                <button class="action-btn btn-danger" onclick="deleteProduct(${product.id})">🗑️</button>
+                            </td>
                             <td>${product.name}</td>
                             ${brandCell}
                             <td>${product.category}</td>
@@ -2198,11 +2203,6 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
                             <td><strong>${formatGuaranies(product.price)}</strong></td>
                              <td>${product.imageUrl ? `<img src="${product.imageUrl}" style="width:50px;height:50px;object-fit:cover;border-radius:5px;cursor:pointer;" onclick='showImageModal("${product.imageUrl}")'>` : '❌'}</td>
                             <td>${stockStatus}</td>
-                            <td class="action-btns">
-                                <button class="action-btn btn-info" onclick="showProductDetails(${product.id})" style="background: #17a2b8;">👁️ Ver</button>
-                                <button class="action-btn btn-primary" onclick="openProductModal(${product.id})">✏️ Editar</button>
-                                <button class="action-btn btn-danger" onclick="deleteProduct(${product.id})">🗑️</button>
-                            </td>
                         </tr>
                     `;
                 });
@@ -2234,8 +2234,8 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
 
             rows.forEach(row => {
                 const text = row.textContent.toLowerCase();
-                // Categoría está en la columna 3 (índice 3): Código, Nombre, Marca, Categoría
-                const category = row.children[3]?.textContent || '';
+                // Categoría está en la columna 4 (índice 4): Código, Acciones, Nombre, Marca, Categoría
+                const category = row.children[4]?.textContent || '';
 
                 const matchesSearch = text.includes(searchTerm);
                 const matchesCategory = !categoryFilter || category === categoryFilter;
@@ -2971,22 +2971,26 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
                 '<span class="badge badge-success">✅ Stock OK</span>';
 
             const content = `
-                <div class="product-details-grid">
+                <!-- Fila especial con Código, Imagen y Nombre -->
+                <div style="display: grid; grid-template-columns: 1fr auto 1fr; gap: 15px; margin-bottom: 20px;">
                     <div class="product-detail-item">
                         <div class="product-detail-label">📝 Código</div>
                         <div class="product-detail-value">${product.code}</div>
                     </div>
 
                     ${product.imageUrl ? `
-                        <div class="product-detail-item" style="display: flex; align-items: center; justify-content: center; background: #fff; border: 2px dashed #dee2e6;">
+                        <div class="product-detail-item" style="display: flex; align-items: center; justify-content: center; background: #fff; border: 2px dashed #dee2e6; min-width: 150px;">
                             <img src="${product.imageUrl}" alt="${product.name}" onclick='showImageModal("${product.imageUrl}")' style="max-width: 100%; max-height: 150px; border-radius: 8px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
                         </div>
-                    ` : '<div class="product-detail-item" style="display: flex; align-items: center; justify-content: center; background: #f8f9fa;"><span style="font-size: 40px; color: #ccc;">📷</span></div>'}
+                    ` : '<div class="product-detail-item" style="display: flex; align-items: center; justify-content: center; background: #f8f9fa; min-width: 150px;"><span style="font-size: 40px; color: #ccc;">📷</span></div>'}
 
                     <div class="product-detail-item">
                         <div class="product-detail-label">🏷️ Nombre</div>
                         <div class="product-detail-value">${product.name}</div>
                     </div>
+                </div>
+
+                <div class="product-details-grid">
 
                     ${product.brand ? `
                         <div class="product-detail-item">
