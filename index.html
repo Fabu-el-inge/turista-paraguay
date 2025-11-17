@@ -1716,7 +1716,7 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
             selectCustomer.innerHTML = '<option value="">-- Seleccionar Cliente --</option>';
 
             clients.forEach(client => {
-                selectCustomer.innerHTML += `<option value="${client.id}">${client.name} - ${client.docType}: ${client.docNumber}</option>`;
+                selectCustomer.innerHTML += `<option value="${client.id}">${client.name} - ${client.docType}: ${formatNumberWithDots(client.docNumber)}</option>`;
             });
 
             await loadSalesHistory();
@@ -2164,7 +2164,7 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
                         <tr>
                             <td><strong>${client.code}</strong></td>
                             <td>${client.name}</td>
-                            <td>${client.docType}: ${client.docNumber}</td>
+                            <td>${client.docType}: ${formatNumberWithDots(client.docNumber)}</td>
                             <td>${client.phone}</td>
                             <td>${client.email || '-'}</td>
                             <td>${client.city}</td>
