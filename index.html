@@ -589,6 +589,24 @@
                 white-space: nowrap;
             }
 
+            /* Reordenar columnas de productos en móvil */
+            #productsTableBody tr,
+            table thead tr {
+                display: flex;
+                flex-wrap: nowrap;
+            }
+
+            /* Orden en móvil: Código -> Acciones -> resto */
+            .col-code { order: 1; }
+            .col-actions { order: 2; }
+            .col-name { order: 3; }
+            .col-brand { order: 4; }
+            .col-category { order: 5; }
+            .col-stock { order: 6; }
+            .col-price { order: 7; }
+            .col-image { order: 8; }
+            .col-status { order: 9; }
+
             /* Cards más compactas */
             .stat-card {
                 padding: 15px;
@@ -974,15 +992,15 @@
                     <table>
                         <thead>
                             <tr>
-                                <th>Código</th>
-                                <th>Acciones</th>
-                                <th>Nombre</th>
-                                <th>Marca</th>
-                                <th>Categoría</th>
-                                <th>Stock</th>
-                                <th>Precio de Venta</th>
-                                <th>Imagen</th>
-                                <th>Estado</th>
+                                <th class="col-code">Código</th>
+                                <th class="col-name">Nombre</th>
+                                <th class="col-brand">Marca</th>
+                                <th class="col-category">Categoría</th>
+                                <th class="col-stock">Stock</th>
+                                <th class="col-price">Precio de Venta</th>
+                                <th class="col-image">Imagen</th>
+                                <th class="col-status">Estado</th>
+                                <th class="col-actions">Acciones</th>
                             </tr>
                         </thead>
                         <tbody id="productsTableBody">
@@ -2188,21 +2206,23 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
 
                     const brandCell = product.brand ? `<td>${product.brand}</td>` : '<td><em style="color: #999;">-</em></td>';
 
+                    const brandCellWithClass = product.brand ? `<td class="col-brand">${product.brand}</td>` : '<td class="col-brand"><em style="color: #999;">-</em></td>';
+
                     tbody.innerHTML += `
                         <tr>
-                            <td><strong>${product.code}</strong></td>
-                            <td class="action-btns">
+                            <td class="col-code"><strong>${product.code}</strong></td>
+                            <td class="col-name">${product.name}</td>
+                            ${brandCellWithClass}
+                            <td class="col-category">${product.category}</td>
+                            <td class="col-stock"><strong>${formatUnit(product.stock, product.unit)}</strong></td>
+                            <td class="col-price"><strong>${formatGuaranies(product.price)}</strong></td>
+                            <td class="col-image">${product.imageUrl ? `<img src="${product.imageUrl}" style="width:50px;height:50px;object-fit:cover;border-radius:5px;cursor:pointer;" onclick='showImageModal("${product.imageUrl}")'>` : '❌'}</td>
+                            <td class="col-status">${stockStatus}</td>
+                            <td class="col-actions action-btns">
                                 <button class="action-btn btn-info" onclick="showProductDetails(${product.id})" style="background: #17a2b8;">👁️ Ver</button>
                                 <button class="action-btn btn-primary" onclick="openProductModal(${product.id})">✏️ Editar</button>
                                 <button class="action-btn btn-danger" onclick="deleteProduct(${product.id})">🗑️</button>
                             </td>
-                            <td>${product.name}</td>
-                            ${brandCell}
-                            <td>${product.category}</td>
-                            <td><strong>${formatUnit(product.stock, product.unit)}</strong></td>
-                            <td><strong>${formatGuaranies(product.price)}</strong></td>
-                             <td>${product.imageUrl ? `<img src="${product.imageUrl}" style="width:50px;height:50px;object-fit:cover;border-radius:5px;cursor:pointer;" onclick='showImageModal("${product.imageUrl}")'>` : '❌'}</td>
-                            <td>${stockStatus}</td>
                         </tr>
                     `;
                 });
@@ -2234,8 +2254,8 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
 
             rows.forEach(row => {
                 const text = row.textContent.toLowerCase();
-                // Categoría está en la columna 4 (índice 4): Código, Acciones, Nombre, Marca, Categoría
-                const category = row.children[4]?.textContent || '';
+                // Categoría está en la columna 3 (índice 3): Código, Nombre, Marca, Categoría
+                const category = row.children[3]?.textContent || '';
 
                 const matchesSearch = text.includes(searchTerm);
                 const matchesCategory = !categoryFilter || category === categoryFilter;
