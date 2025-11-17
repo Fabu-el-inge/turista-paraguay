@@ -689,24 +689,54 @@
                         <input type="text" id="salePrice" readonly style="text-align:left; font-weight:bold;">
                     </div>
                     <div class="form-group">
-                        <label>Total</label>
+                        <label>Subtotal Item</label>
                         <input type="text" id="saleTotal" readonly style="font-weight:bold; font-size:18px; text-align:left;">
                     </div>
                 </div>
 
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Cliente *</label>
-                        <select id="saleCustomer" required>
-                            <option value="">-- Seleccionar Cliente --</option>
-                        </select>
-                    </div>
-                    <div class="form-group" style="display: flex; align-items: flex-end;">
-                        <button type="button" class="btn btn-primary" onclick="openClientModal()" style="width: 100%;">➕ Nuevo Cliente</button>
-                    </div>
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <button class="btn btn-primary" onclick="addToCart()" style="width: 100%; font-size: 16px;">🛒 Agregar al Carrito</button>
                 </div>
 
-                <button class="btn btn-success" onclick="registerSale()" style="width: 100%; font-size: 16px;">✅ Registrar Venta</button>
+                <!-- Carrito de Compras -->
+                <div id="cartSection" style="display:none; background:#f8f9fa; padding:20px; border-radius:10px; margin-bottom:20px;">
+                    <h3 style="margin:0 0 15px 0;">🛒 Carrito de Compras</h3>
+                    <div class="table-container" style="margin-bottom:15px;">
+                        <table style="font-size:14px;">
+                            <thead>
+                                <tr>
+                                    <th>Producto</th>
+                                    <th>Cantidad</th>
+                                    <th>P. Unit.</th>
+                                    <th>Subtotal</th>
+                                    <th>Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="cartItems">
+                            </tbody>
+                        </table>
+                    </div>
+                    <div style="text-align:right; padding:10px; background:white; border-radius:5px; margin-bottom:15px;">
+                        <strong style="font-size:18px;">Total Venta: <span id="cartTotal" style="color:#28a745;">Gs. 0</span></strong>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Cliente *</label>
+                            <select id="saleCustomer" required>
+                                <option value="">-- Seleccionar Cliente --</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="display: flex; align-items: flex-end;">
+                            <button type="button" class="btn btn-primary" onclick="openClientModal()" style="width: 100%;">➕ Nuevo Cliente</button>
+                        </div>
+                    </div>
+
+                    <div style="display:flex; gap:10px;">
+                        <button class="btn btn-success" onclick="completeSale()" style="flex: 1; font-size: 16px;">✅ Completar Venta</button>
+                        <button class="btn btn-danger" onclick="clearCart()" style="padding: 10px 20px;">🗑️ Vaciar</button>
+                    </div>
+                </div>
 
                 <h3 style="margin-top: 40px; margin-bottom: 15px;">Historial de Ventas</h3>
                 <div class="table-container">
@@ -973,6 +1003,7 @@
         let products = [];
         let sales = [];
         let clients = [];
+        let cart = []; // Carrito de compras temporal
 
         // Variables globales
         let editingProductId = null;
@@ -1939,7 +1970,180 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
             document.getElementById('saleTotal').dataset.rawValue = total; // Guardar valor numérico
         }
 
-        // Registrar venta
+        // ===== FUNCIONES DEL CARRITO DE COMPRAS =====
+
+        // Agregar producto al carrito
+        function addToCart() {
+            const productId = parseInt(document.getElementById('saleProduct').value);
+            const quantity = parseFloat(document.getElementById('saleQuantity').value);
+
+            if (!productId || !quantity || quantity <= 0) {
+                alert('⚠️ Por favor selecciona un producto y cantidad válida');
+                return;
+            }
+
+            const product = products.find(p => p.id === productId);
+
+            if (quantity > product.stock) {
+                alert(`⚠️ No hay suficiente stock disponible. Stock actual: ${formatUnit(product.stock, product.unit)}`);
+                return;
+            }
+
+            // Verificar si el producto ya está en el carrito
+            const existingItem = cart.find(item => item.productId === productId);
+
+            if (existingItem) {
+                // Si ya existe, actualizar cantidad
+                const newQuantity = existingItem.quantity + quantity;
+                if (newQuantity > product.stock) {
+                    alert(`⚠️ No hay suficiente stock. Stock disponible: ${formatUnit(product.stock, product.unit)}`);
+                    return;
+                }
+                existingItem.quantity = newQuantity;
+                existingItem.subtotal = existingItem.price * newQuantity;
+            } else {
+                // Agregar nuevo item al carrito
+                cart.push({
+                    productId: product.id,
+                    productName: product.name,
+                    productBrand: product.brand || '',
+                    category: product.category,
+                    quantity: quantity,
+                    unit: product.unit,
+                    price: product.price,
+                    subtotal: product.price * quantity,
+                    stock: product.stock
+                });
+            }
+
+            // Limpiar selección de producto
+            document.getElementById('saleProduct').value = '';
+            document.getElementById('selectedProductText').textContent = '-- Seleccionar Producto --';
+            document.getElementById('saleQuantity').value = 1;
+            document.getElementById('salePrice').value = '';
+            document.getElementById('saleTotal').value = '';
+            document.getElementById('saleUnitLabel').textContent = '';
+            document.getElementById('saleProductImagePreview').style.display = 'none';
+
+            // Actualizar vista del carrito
+            updateCartView();
+
+            alert('✅ Producto agregado al carrito');
+        }
+
+        // Actualizar vista del carrito
+        function updateCartView() {
+            const cartItemsBody = document.getElementById('cartItems');
+            const cartSection = document.getElementById('cartSection');
+            const cartTotalSpan = document.getElementById('cartTotal');
+
+            if (cart.length === 0) {
+                cartSection.style.display = 'none';
+                return;
+            }
+
+            cartSection.style.display = 'block';
+            cartItemsBody.innerHTML = '';
+
+            let total = 0;
+
+            cart.forEach((item, index) => {
+                total += item.subtotal;
+
+                cartItemsBody.innerHTML += `
+                    <tr>
+                        <td><strong>${item.productName}</strong>${item.productBrand ? '<br><small>' + item.productBrand + '</small>' : ''}</td>
+                        <td>${formatUnit(item.quantity, item.unit)}</td>
+                        <td>${formatGuaranies(item.price)}</td>
+                        <td><strong>${formatGuaranies(item.subtotal)}</strong></td>
+                        <td class="action-btns">
+                            <button class="action-btn btn-danger" onclick="removeFromCart(${index})" style="padding:5px 10px;font-size:12px;">🗑️</button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            cartTotalSpan.textContent = formatGuaranies(total);
+        }
+
+        // Remover item del carrito
+        function removeFromCart(index) {
+            const item = cart[index];
+            if (confirm(`¿Eliminar ${item.productName} del carrito?`)) {
+                cart.splice(index, 1);
+                updateCartView();
+            }
+        }
+
+        // Vaciar carrito
+        function clearCart() {
+            if (cart.length === 0) return;
+
+            if (confirm('¿Estás seguro de vaciar el carrito?')) {
+                cart = [];
+                updateCartView();
+            }
+        }
+
+        // Completar venta con múltiples productos
+        async function completeSale() {
+            const customerId = parseInt(document.getElementById('saleCustomer').value);
+
+            if (cart.length === 0) {
+                alert('⚠️ El carrito está vacío. Agrega productos antes de completar la venta.');
+                return;
+            }
+
+            if (!customerId) {
+                alert('⚠️ Por favor selecciona un cliente');
+                return;
+            }
+
+            const client = clients.find(c => c.id == customerId);
+
+            try {
+                // Registrar cada producto del carrito como una venta individual
+                for (const item of cart) {
+                    const saleData = {
+                        productId: item.productId,
+                        productName: item.productName,
+                        productBrand: item.productBrand,
+                        category: item.category,
+                        quantity: item.quantity,
+                        unit: item.unit,
+                        price: item.price,
+                        total: item.subtotal,
+                        customerId: client.id,
+                        customer: client.name,
+                        customerDoc: `${client.docType}: ${formatNumberWithDots(client.docNumber)}`
+                    };
+
+                    // Guardar venta
+                    await saveSaleToDB(saleData);
+
+                    // Actualizar stock del producto
+                    const newStock = item.stock - item.quantity;
+                    await updateProductInDB(item.productId, { stock: newStock });
+                }
+
+                const totalVenta = cart.reduce((sum, item) => sum + item.subtotal, 0);
+                alert(`✅ Venta completada exitosamente!\n\nTotal: ${formatGuaranies(totalVenta)}\nProductos: ${cart.length}\nCliente: ${client.name}`);
+
+                // Limpiar carrito y formulario
+                cart = [];
+                updateCartView();
+                document.getElementById('saleCustomer').value = '';
+
+                // Recargar datos
+                await loadProducts();
+                await loadSalesForm();
+                await updateDashboard();
+            } catch (error) {
+                alert('Error al completar la venta: ' + error.message);
+            }
+        }
+
+        // Registrar venta (mantener para compatibilidad, pero ya no se usa)
         async function registerSale() {
             const productId = parseInt(document.getElementById('saleProduct').value);
             const quantity = parseFloat(document.getElementById('saleQuantity').value);
