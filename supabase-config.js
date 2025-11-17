@@ -334,7 +334,8 @@ async function loadSalesFromDB() {
             customerId: s.client_id,
             customer: s.client_name,
             customerDoc: s.client_doc,
-            date: s.sale_date
+            date: s.sale_date,
+            created_at: s.sale_date
         }));
     } catch (error) {
         console.error('Error al cargar ventas:', error);
