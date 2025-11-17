@@ -13,6 +13,11 @@
             box-sizing: border-box;
         }
 
+        html, body {
+            max-width: 100%;
+            overflow-x: hidden;
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -23,6 +28,7 @@
             max-width: 1400px;
             margin: 0 auto;
             padding: 20px;
+            width: 100%;
         }
 
         .header {
@@ -435,25 +441,38 @@
         }
 
         @media (max-width: 768px) {
+            /* Prevenir desbordamiento horizontal */
+            * {
+                max-width: 100%;
+            }
+
             /* Layout general móvil */
             .container {
                 padding: 10px;
+                width: 100%;
+                overflow-x: hidden;
             }
 
             .form-row, .form-row-3 {
-                grid-template-columns: 1fr;
+                grid-template-columns: 1fr !important;
                 gap: 12px;
             }
 
             .stats-grid {
-                grid-template-columns: 1fr;
+                grid-template-columns: 1fr !important;
                 gap: 12px;
+            }
+
+            .dashboard-grid {
+                grid-template-columns: 1fr !important;
+                gap: 10px;
             }
 
             .header {
                 flex-direction: column;
                 gap: 12px;
                 padding: 15px;
+                width: 100%;
             }
 
             .header h1 {
@@ -461,39 +480,48 @@
                 text-align: center;
             }
 
+            .logo {
+                font-size: 20px;
+            }
+
             /* Navegación móvil mejorada */
             .nav {
-                flex-wrap: nowrap;
-                overflow-x: auto;
-                -webkit-overflow-scrolling: touch;
+                flex-direction: column;
+                width: 100%;
                 gap: 8px;
-                padding-bottom: 5px;
             }
 
             .nav-btn {
-                min-width: 100px;
-                padding: 10px 12px;
-                font-size: 13px;
-                white-space: nowrap;
+                width: 100%;
+                padding: 12px;
+                font-size: 14px;
+                text-align: center;
+                white-space: normal;
             }
 
             /* Formularios más amigables */
+            .form-group {
+                width: 100%;
+            }
+
             .form-group label {
                 font-size: 13px;
                 font-weight: 600;
             }
 
             input, select, textarea {
-                font-size: 16px !important; /* Evita zoom automático en iOS */
+                font-size: 16px !important;
                 padding: 12px;
+                width: 100%;
+                max-width: 100%;
             }
 
             /* Botones más grandes para dedos */
             .btn {
                 padding: 14px 20px;
                 font-size: 15px;
-                min-height: 48px; /* Tamaño mínimo táctil recomendado */
-                width: 100%; /* Botones a ancho completo en móvil */
+                min-height: 48px;
+                width: 100%;
             }
 
             .action-btn {
@@ -514,6 +542,7 @@
                 flex-direction: column;
                 gap: 8px;
                 align-items: stretch;
+                width: 100%;
             }
 
             .action-btns .action-btn {
@@ -521,60 +550,89 @@
                 justify-content: center;
             }
 
-            /* Botones en form-row en móvil */
-            .form-row.button-row,
-            div[style*="display: flex"][style*="gap"] {
-                flex-direction: column !important;
-                gap: 10px !important;
+            /* TODOS los contenedores flex con botones */
+            div[style*="display: flex"],
+            div[style*="display:flex"] {
+                flex-wrap: wrap !important;
             }
 
-            div[style*="display: flex"][style*="gap"] > button,
-            div[style*="display: flex"][style*="gap"] > .btn {
+            div[style*="display: flex"][style*="gap"],
+            div[style*="display:flex"][style*="gap"] {
+                flex-direction: column !important;
+                gap: 10px !important;
                 width: 100% !important;
-                flex: none !important;
+            }
+
+            div[style*="display: flex"] > button,
+            div[style*="display:flex"] > button,
+            div[style*="display: flex"] > .btn,
+            div[style*="display:flex"] > .btn {
+                width: 100% !important;
+                flex: 1 1 100% !important;
             }
 
             /* Tablas responsivas */
             .table-container {
                 overflow-x: auto;
                 -webkit-overflow-scrolling: touch;
+                width: 100%;
             }
 
             table {
-                font-size: 13px;
+                font-size: 11px;
+                min-width: 600px;
             }
 
             table th, table td {
-                padding: 10px 8px;
+                padding: 8px 4px;
                 white-space: nowrap;
             }
 
             /* Cards más compactas */
             .stat-card {
                 padding: 15px;
+                width: 100%;
             }
 
             .stat-value {
                 font-size: 20px !important;
             }
 
-            /* Modal full screen en móvil */
+            /* Modal casi full screen en móvil */
+            .modal {
+                padding: 5px;
+            }
+
             .modal-content {
-                width: 95% !important;
-                max-width: 95% !important;
-                margin: 10px auto;
-                max-height: 90vh;
+                width: 98% !important;
+                max-width: 98% !important;
+                margin: 5px auto;
+                max-height: 95vh;
                 overflow-y: auto;
+            }
+
+            .modal-header {
+                padding: 15px;
             }
 
             .modal-header h2 {
                 font-size: 18px;
             }
 
+            .modal-body {
+                padding: 15px;
+            }
+
             /* Selector de productos más grande */
             .custom-select-button {
                 padding: 14px;
                 font-size: 15px;
+                width: 100%;
+            }
+
+            .custom-dropdown {
+                max-height: 60vh;
+                overflow-y: auto;
             }
 
             .product-option {
@@ -589,9 +647,9 @@
 
             /* Toast más visible en móvil */
             .toast {
-                bottom: 20px;
-                right: 20px;
-                left: 20px;
+                bottom: 10px;
+                right: 10px;
+                left: 10px;
                 max-width: none;
                 font-size: 14px;
             }
@@ -599,46 +657,63 @@
             /* Carrito más compacto */
             #cartSection {
                 padding: 15px;
+                width: 100%;
             }
 
             #cartSection table {
-                font-size: 12px;
+                font-size: 11px;
             }
 
             /* Mejorar espaciado general */
             .section {
                 padding: 15px;
-            }
-
-            h2 {
-                font-size: 22px;
+                width: 100%;
                 margin-bottom: 15px;
             }
 
+            h2 {
+                font-size: 20px;
+                margin-bottom: 12px;
+            }
+
             h3 {
-                font-size: 18px;
+                font-size: 16px;
             }
 
             /* Header de secciones con botones */
-            .section > div[style*="display: flex"][style*="justify-content: space-between"] {
+            .section > div[style*="display: flex"][style*="justify-content: space-between"],
+            .section > div[style*="display:flex"][style*="justify-content:space-between"] {
                 flex-direction: column !important;
                 gap: 12px !important;
                 align-items: stretch !important;
             }
 
-            .section > div[style*="display: flex"][style*="justify-content: space-between"] > h2 {
+            .section > div[style*="display: flex"][style*="justify-content: space-between"] > h2,
+            .section > div[style*="display:flex"][style*="justify-content:space-between"] > h2 {
                 text-align: center;
             }
 
-            /* Botones de completar venta y vaciar carrito */
-            #cartSection div[style*="display:flex"] {
+            /* Botones de carrito */
+            #cartSection > div:last-child,
+            #cartSection div[style*="display:flex"],
+            #cartSection div[style*="display: flex"] {
                 flex-direction: column !important;
                 gap: 10px !important;
+                width: 100% !important;
             }
 
-            #cartSection div[style*="display:flex"] > button {
+            #cartSection > div:last-child > button,
+            #cartSection div[style*="display:flex"] > button,
+            #cartSection div[style*="display: flex"] > button {
                 width: 100% !important;
                 flex: none !important;
+            }
+
+            /* Info boxes */
+            .info-box {
+                padding: 12px;
+                font-size: 13px;
+                margin-bottom: 15px;
             }
         }
 
