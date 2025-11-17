@@ -2978,11 +2978,10 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
                     </div>
 
                     ${product.imageUrl ? `
-                        <div class="product-image-container">
-                            <img src="${product.imageUrl}" alt="${product.name}" class="product-image-large" onclick='showImageModal("${product.imageUrl}")' style="cursor: pointer;">
-                            <p style="color: #6c757d; font-size: 12px; margin-top: 10px;">Click en la imagen para ampliar</p>
+                        <div class="product-detail-item" style="display: flex; align-items: center; justify-content: center; background: #fff; border: 2px dashed #dee2e6;">
+                            <img src="${product.imageUrl}" alt="${product.name}" onclick='showImageModal("${product.imageUrl}")' style="max-width: 100%; max-height: 150px; border-radius: 8px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
                         </div>
-                    ` : ''}
+                    ` : '<div class="product-detail-item" style="display: flex; align-items: center; justify-content: center; background: #f8f9fa;"><span style="font-size: 40px; color: #ccc;">📷</span></div>'}
 
                     <div class="product-detail-item">
                         <div class="product-detail-label">🏷️ Nombre</div>
