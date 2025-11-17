@@ -1412,9 +1412,13 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
                 window.currentStream.getTracks().forEach(track => track.stop());
             }
 
+            // Constraints mejorados para mejor calidad
             const constraints = {
                 video: {
-                    facingMode: currentCameraMode
+                    facingMode: currentCameraMode,
+                    width: { ideal: 1920 },
+                    height: { ideal: 1080 },
+                    aspectRatio: { ideal: 4/3 }
                 }
             };
 
@@ -1428,17 +1432,22 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
                 return;
             }
 
-            // Crear modal con video
+            // Crear modal con video mejorado
             const modal = document.createElement('div');
             modal.innerHTML = `
-                <div style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);z-index:10000;display:flex;align-items:center;justify-content:center;">
-                    <div style="background:white;padding:20px;border-radius:10px;max-width:90%;max-height:90%;">
-                        <video id="cameraVideo" autoplay playsinline style="max-width:100%;border-radius:8px;"></video>
-                        <div style="margin-top:15px;text-align:center;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
-                            <button class="btn btn-primary" onclick="capturePhoto()">📸 Capturar</button>
-                            <button class="btn btn-secondary" onclick="flipCamera()">🔄 Voltear Cámara</button>
-                            <button class="btn btn-secondary" onclick="closeCamera()">❌ Cancelar</button>
+                <div style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;">
+                    <div style="background:white;padding:20px;border-radius:15px;max-width:600px;width:100%;box-shadow:0 10px 40px rgba(0,0,0,0.3);">
+                        <h3 style="margin:0 0 15px 0;text-align:center;color:#333;">📸 Tomar Fotografía</h3>
+                        <div style="position:relative;background:#000;border-radius:10px;overflow:hidden;">
+                            <video id="cameraVideo" autoplay playsinline style="width:100%;height:auto;display:block;"></video>
+                            <div id="captureFlash" style="position:absolute;top:0;left:0;width:100%;height:100%;background:white;opacity:0;pointer-events:none;transition:opacity 0.1s;"></div>
                         </div>
+                        <div style="margin-top:20px;text-align:center;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+                            <button class="btn btn-success" onclick="capturePhoto()" style="flex:1;min-width:120px;font-size:16px;">📸 Capturar</button>
+                            <button class="btn btn-secondary" onclick="flipCamera()" style="padding:10px 20px;">🔄</button>
+                            <button class="btn btn-danger" onclick="closeCamera()" style="padding:10px 20px;">❌</button>
+                        </div>
+                        <p style="margin:10px 0 0 0;text-align:center;font-size:12px;color:#666;">Tip: Mantén el dispositivo estable y con buena iluminación</p>
                     </div>
                 </div>
             `;
@@ -1466,18 +1475,54 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
         function capturePhoto() {
             const video = document.getElementById('cameraVideo');
             const canvas = document.createElement('canvas');
+
+            // Usar resolución del video
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
-            canvas.getContext('2d').drawImage(video, 0, 0);
 
-            canvas.toBlob((blob) => {
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0);
+
+            // Efecto flash visual
+            const flash = document.getElementById('captureFlash');
+            if (flash) {
+                flash.style.opacity = '0.7';
+                setTimeout(() => flash.style.opacity = '0', 100);
+            }
+
+            // Comprimir imagen para tamaño óptimo
+            // Si la imagen es muy grande, redimensionar
+            let finalCanvas = canvas;
+            const maxDimension = 1600; // Máximo ancho o alto
+
+            if (canvas.width > maxDimension || canvas.height > maxDimension) {
+                finalCanvas = document.createElement('canvas');
+                const scale = Math.min(maxDimension / canvas.width, maxDimension / canvas.height);
+                finalCanvas.width = canvas.width * scale;
+                finalCanvas.height = canvas.height * scale;
+
+                const finalCtx = finalCanvas.getContext('2d');
+                finalCtx.drawImage(canvas, 0, 0, finalCanvas.width, finalCanvas.height);
+            }
+
+            // Convertir a blob con calidad ajustada (0.85 = 85% calidad)
+            finalCanvas.toBlob((blob) => {
+                // Verificar tamaño del archivo
+                const sizeMB = blob.size / (1024 * 1024);
+                console.log(`Tamaño de imagen: ${sizeMB.toFixed(2)} MB`);
+
+                if (sizeMB > 5) {
+                    alert('⚠️ La imagen es muy grande. Intenta con mejor iluminación o más cerca del producto.');
+                    return;
+                }
+
                 selectedImageFile = new File([blob], 'photo.jpg', { type: 'image/jpeg' });
 
-                document.getElementById('previewImg').src = canvas.toDataURL();
+                document.getElementById('previewImg').src = finalCanvas.toDataURL('image/jpeg', 0.85);
                 document.getElementById('imagePreview').style.display = 'block';
 
                 closeCamera();
-            }, 'image/jpeg');
+            }, 'image/jpeg', 0.85);
         }
 
         function closeCamera() {
