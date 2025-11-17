@@ -2966,17 +2966,17 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
 
             const content = `
                 <div class="product-details-grid">
+                    <div class="product-detail-item">
+                        <div class="product-detail-label">📝 Código</div>
+                        <div class="product-detail-value">${product.code}</div>
+                    </div>
+
                     ${product.imageUrl ? `
                         <div class="product-image-container">
                             <img src="${product.imageUrl}" alt="${product.name}" class="product-image-large" onclick='showImageModal("${product.imageUrl}")' style="cursor: pointer;">
                             <p style="color: #6c757d; font-size: 12px; margin-top: 10px;">Click en la imagen para ampliar</p>
                         </div>
                     ` : ''}
-
-                    <div class="product-detail-item">
-                        <div class="product-detail-label">📝 Código</div>
-                        <div class="product-detail-value">${product.code}</div>
-                    </div>
 
                     <div class="product-detail-item">
                         <div class="product-detail-label">🏷️ Nombre</div>
