@@ -2216,7 +2216,7 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
                 <div style="margin-bottom:20px;">
                     <label>Nueva Categoría</label>
                     <div style="display:flex;gap:10px;">
-                        <input type="text" id="newCategoryName" placeholder="Nombre de la categoría" style="flex:1;">
+                        <input type="text" id="newCategoryName" placeholder="Nombre de la categoría" style="flex:1;" oninput="capitalizeFirst(this)">
                         <button class="btn btn-primary" onclick="addCategory()">➕ Agregar</button>
                     </div>
                 </div>
