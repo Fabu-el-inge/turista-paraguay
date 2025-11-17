@@ -726,10 +726,13 @@
                 </div>
 
                 <!-- Preview de imagen del producto seleccionado -->
-                <div id="saleProductImagePreview" style="display:none; margin-bottom:15px; padding:10px; background:#f8f9fa; border-radius:8px; border-left:4px solid #667eea;">
-                    <div style="display:flex; align-items:center; gap:12px;">
-                        <img id="saleProductImage" style="width:80px; height:80px; object-fit:cover; border-radius:6px; border:2px solid #fff; box-shadow:0 2px 4px rgba(0,0,0,0.1); flex-shrink:0;">
-                        <span style="font-size:12px; color:#6c757d; font-weight:500;">📸 Imagen de referencia</span>
+                <div id="saleProductImagePreview" style="display:none; margin-bottom:15px;">
+                    <button type="button" onclick="toggleImagePreview()" style="width:100%; padding:8px; background:#f8f9fa; border:1px solid #dee2e6; border-radius:6px; cursor:pointer; display:flex; align-items:center; justify-content:space-between; transition:all 0.2s;">
+                        <span style="font-size:13px; color:#495057; font-weight:500;">📸 Ver imagen de referencia</span>
+                        <span id="imageToggleIcon" style="font-size:12px; color:#6c757d;">▼</span>
+                    </button>
+                    <div id="imagePreviewContent" style="display:none; margin-top:10px; padding:10px; background:#f8f9fa; border-radius:6px; border-left:4px solid #667eea;">
+                        <img id="saleProductImage" style="width:100%; max-width:300px; height:auto; border-radius:6px; border:2px solid #fff; box-shadow:0 2px 4px rgba(0,0,0,0.1); display:block; margin:0 auto;">
                     </div>
                 </div>
 
@@ -1919,6 +1922,20 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
             }
         });
         
+        // Toggle de vista previa de imagen
+        function toggleImagePreview() {
+            const content = document.getElementById('imagePreviewContent');
+            const icon = document.getElementById('imageToggleIcon');
+
+            if (content.style.display === 'none') {
+                content.style.display = 'block';
+                icon.textContent = '▲';
+            } else {
+                content.style.display = 'none';
+                icon.textContent = '▼';
+            }
+        }
+
         function selectProduct(productId) {
             const product = products.find(p => p.id === productId);
             if (!product) return;
@@ -2092,7 +2109,10 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
             document.getElementById('salePrice').value = '';
             document.getElementById('saleTotal').value = '';
             document.getElementById('saleUnitLabel').textContent = '';
+            // Ocultar y resetear imagen
             document.getElementById('saleProductImagePreview').style.display = 'none';
+            document.getElementById('imagePreviewContent').style.display = 'none';
+            document.getElementById('imageToggleIcon').textContent = '▼';
 
             // Actualizar vista del carrito
             updateCartView();
@@ -2271,6 +2291,8 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
                 document.getElementById('saleCustomer').value = '';
                 document.getElementById('saleUnitLabel').textContent = '';
                 document.getElementById('saleProductImagePreview').style.display = 'none';
+                document.getElementById('imagePreviewContent').style.display = 'none';
+                document.getElementById('imageToggleIcon').textContent = '▼';
 
                 await loadProducts();
                 await loadSalesForm();
