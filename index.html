@@ -2136,6 +2136,7 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
 
                 // Recargar datos
                 await loadProducts();
+                await loadSales();
                 await loadSalesForm();
                 await updateDashboard();
             } catch (error) {
