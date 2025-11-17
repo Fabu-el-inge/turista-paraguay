@@ -3156,7 +3156,7 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
                 </div>
 
                 <div style="display: flex; gap: 10px; margin-top: 25px; padding-top: 20px; border-top: 2px solid #dee2e6;">
-                    <button class="btn btn-primary" onclick="openProductModal(${product.id}); closeProductDetailsModal();" style="flex: 1;">
+                    <button class="btn btn-primary" onclick="closeProductDetailsModal(); setTimeout(() => openProductModal(${product.id}), 100);" style="flex: 1;">
                         ✏️ Editar Producto
                     </button>
                     <button class="btn btn-secondary" onclick="closeProductDetailsModal()">
