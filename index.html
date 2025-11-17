@@ -493,12 +493,45 @@
                 padding: 14px 20px;
                 font-size: 15px;
                 min-height: 48px; /* Tamaño mínimo táctil recomendado */
+                width: 100%; /* Botones a ancho completo en móvil */
             }
 
             .action-btn {
                 padding: 10px 14px;
                 min-width: 44px;
                 min-height: 44px;
+            }
+
+            /* Contenedores de botones en móvil */
+            .modal-content > form > div:last-child,
+            .section > div > button {
+                width: 100%;
+            }
+
+            /* Alinear botones de acción en filas verticales */
+            .action-btns {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                align-items: stretch;
+            }
+
+            .action-btns .action-btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            /* Botones en form-row en móvil */
+            .form-row.button-row,
+            div[style*="display: flex"][style*="gap"] {
+                flex-direction: column !important;
+                gap: 10px !important;
+            }
+
+            div[style*="display: flex"][style*="gap"] > button,
+            div[style*="display: flex"][style*="gap"] > .btn {
+                width: 100% !important;
+                flex: none !important;
             }
 
             /* Tablas responsivas */
@@ -584,6 +617,28 @@
 
             h3 {
                 font-size: 18px;
+            }
+
+            /* Header de secciones con botones */
+            .section > div[style*="display: flex"][style*="justify-content: space-between"] {
+                flex-direction: column !important;
+                gap: 12px !important;
+                align-items: stretch !important;
+            }
+
+            .section > div[style*="display: flex"][style*="justify-content: space-between"] > h2 {
+                text-align: center;
+            }
+
+            /* Botones de completar venta y vaciar carrito */
+            #cartSection div[style*="display:flex"] {
+                flex-direction: column !important;
+                gap: 10px !important;
+            }
+
+            #cartSection div[style*="display:flex"] > button {
+                width: 100% !important;
+                flex: none !important;
             }
         }
 
