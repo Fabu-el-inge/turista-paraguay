@@ -136,6 +136,19 @@ async function saveProductToDB(product) {
 
 async function updateProductInDB(id, product) {
     try {
+        // Si solo se provee stock, actualizar solo ese campo
+        if (Object.keys(product).length === 1 && product.stock !== undefined) {
+            const { data, error } = await supabase
+                .from('products')
+                .update({ stock: product.stock })
+                .eq('id', id)
+                .select();
+
+            if (error) throw error;
+            return data[0];
+        }
+
+        // Si es una actualización completa, actualizar todos los campos
         const dbProduct = {
             code: product.code,
             name: product.name,
