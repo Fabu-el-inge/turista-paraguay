@@ -371,7 +371,7 @@ async function saveSaleToDB(sale) {
             client_id: sale.customerId,
             client_name: sale.customer,
             client_doc: sale.customerDoc,
-            sale_date: sale.date
+            sale_date: sale.date || new Date().toISOString()  // Usar fecha actual si no se provee
         };
 
         const { data, error } = await supabase
