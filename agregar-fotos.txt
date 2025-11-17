@@ -1,0 +1,164 @@
+INSTRUCCIONES PARA AGREGAR FUNCIONALIDAD DE FOTOS
+==================================================
+
+1. ABRE index.html en un editor de texto
+
+2. BUSCA la línea que dice:
+   <label>Descripción (Opcional)</label>
+
+3. DESPUÉS del </div> de ese form-group, PEGA esto:
+
+<!-- Campo de Foto -->
+<div class="form-group">
+    <label>📸 Foto del Producto (Opcional)</label>
+    <div style="display:flex;gap:10px;margin-bottom:10px;">
+        <input type="file" id="productImage" accept="image/*" style="display:none;" onchange="handleImageSelect(event)">
+        <button type="button" class="btn btn-primary" onclick="document.getElementById('productImage').click()">📁 Subir Archivo</button>
+        <button type="button" class="btn btn-primary" onclick="takePhoto()">📷 Tomar Foto</button>
+    </div>
+    <div id="imagePreview" style="margin-top:10px;display:none;">
+        <img id="previewImg" style="max-width:200px;max-height:200px;border-radius:5px;border:2px solid #ddd;">
+        <button type="button" class="btn btn-danger" onclick="clearImage()" style="display:block;margin-top:10px;width:200px;">🗑️ Eliminar Foto</button>
+    </div>
+</div>
+
+4. BUSCA en el JavaScript donde dice:
+   let editingProductId = null;
+
+5. DESPUÉS de esa línea, PEGA:
+   let selectedImageFile = null;
+
+6. BUSCA la función closeProductModal() y AL FINAL de esa función (antes del }), PEGA:
+   clearImage();
+
+7. BUSCA donde dice <th>Acciones</th> en la tabla de productos
+
+8. ANTES de esa línea, PEGA:
+   <th>Imagen</th>
+
+9. BUSCA donde se genera la fila de la tabla (tiene ${product.code}) y ANTES de la columna de Acciones, PEGA:
+   <td>${product.imageUrl ? `<img src="${product.imageUrl}" style="width:50px;height:50px;object-fit:cover;border-radius:5px;cursor:pointer;" onclick="showImageModal('${product.imageUrl}')">` : '❌'}</td>
+
+10. AL FINAL del <script>, ANTES del </script>, PEGA TODAS estas funciones:
+
+// ========== FUNCIONES DE FOTOS ==========
+
+function handleImageSelect(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+        alert('❌ La imagen es muy grande. Máximo 5MB.');
+        return;
+    }
+
+    if (!file.type.match('image/(jpeg|jpg|png|webp)')) {
+        alert('❌ Formato no válido. Usa JPG, PNG o WEBP.');
+        return;
+    }
+
+    selectedImageFile = file;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        document.getElementById('previewImg').src = e.target.result;
+        document.getElementById('imagePreview').style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+}
+
+async function takePhoto() {
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+
+        const modal = document.createElement('div');
+        modal.innerHTML = `
+            <div style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:10000;display:flex;align-items:center;justify-content:center;">
+                <div style="background:white;padding:20px;border-radius:10px;">
+                    <video id="cameraVideo" autoplay style="max-width:500px;"></video>
+                    <div style="margin-top:10px;text-align:center;">
+                        <button class="btn btn-primary" onclick="capturePhoto()">📸 Capturar</button>
+                        <button class="btn btn-secondary" onclick="closeCamera()">❌ Cancelar</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+
+        const video = document.getElementById('cameraVideo');
+        video.srcObject = stream;
+
+        window.currentStream = stream;
+        window.cameraModal = modal;
+    } catch (error) {
+        alert('❌ No se pudo acceder a la cámara: ' + error.message);
+    }
+}
+
+function capturePhoto() {
+    const video = document.getElementById('cameraVideo');
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext('2d').drawImage(video, 0, 0);
+
+    canvas.toBlob((blob) => {
+        selectedImageFile = new File([blob], 'photo.jpg', { type: 'image/jpeg' });
+
+        document.getElementById('previewImg').src = canvas.toDataURL();
+        document.getElementById('imagePreview').style.display = 'block';
+
+        closeCamera();
+    }, 'image/jpeg');
+}
+
+function closeCamera() {
+    if (window.currentStream) {
+        window.currentStream.getTracks().forEach(track => track.stop());
+    }
+    if (window.cameraModal) {
+        window.cameraModal.remove();
+    }
+}
+
+function clearImage() {
+    selectedImageFile = null;
+    document.getElementById('productImage').value = '';
+    document.getElementById('imagePreview').style.display = 'none';
+}
+
+function showImageModal(imageUrl) {
+    const modal = document.createElement('div');
+    modal.innerHTML = `
+        <div style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);z-index:10000;display:flex;align-items:center;justify-content:center;" onclick="this.parentElement.remove()">
+            <div style="text-align:center;">
+                <img src="${imageUrl}" style="max-width:90vw;max-height:90vh;border-radius:10px;">
+                <p style="color:white;margin-top:10px;font-size:14px;">Click para cerrar</p>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+11. BUSCA la función saveProduct() y BUSCA donde dice:
+    const productData = {
+
+12. DESPUÉS de crear productData y ANTES de llamar a saveProductToDB o updateProductInDB, PEGA:
+
+// Subir imagen si hay
+if (selectedImageFile && productData.code) {
+    const imageUrl = await uploadProductImage(selectedImageFile, productData.code);
+    if (imageUrl) {
+        productData.imageUrl = imageUrl;
+    }
+}
+
+13. BUSCA la función openProductModal(productId) y AL FINAL (antes del }), PEGA:
+
+// Mostrar imagen si existe
+if (product.imageUrl) {
+    document.getElementById('previewImg').src = product.imageUrl;
+    document.getElementById('imagePreview').style.display = 'block';
+}
+
+¡LISTO! Guarda el archivo y recarga la página.

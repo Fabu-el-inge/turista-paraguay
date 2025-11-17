@@ -1,0 +1,37 @@
+VERIFICACIÓN DE FUNCIONALIDAD DE FOTOS - index.html
+====================================================
+
+✅ 1. Variable global selectedImageFile agregada (línea 859)
+
+✅ 2. Campo de foto en el formulario:
+   - Input file con accept="image/*" (línea 765)
+   - Botón "Subir Archivo" (línea 766)
+   - Botón "Tomar Foto" (línea 767)
+   - Preview de imagen (líneas 769-772)
+
+✅ 3. Funciones JavaScript agregadas:
+   - handleImageSelect() - línea 1017
+   - takePhoto() - línea 1044
+   - capturePhoto() - línea 1073
+   - closeCamera() - línea 1090
+   - clearImage() - línea 1099
+   - showImageModal() - línea 1105
+
+✅ 4. Modificación de openProductModal():
+   - Muestra imagen si existe al editar producto
+
+✅ 5. Modificación de closeProductModal():
+   - Llama a clearImage() para limpiar la imagen
+
+✅ 6. Modificación de saveProduct():
+   - Sube imagen antes de guardar usando uploadProductImage()
+   - Agrega imageUrl al productData si hay imagen
+
+✅ 7. Columna "Imagen" en tabla de productos:
+   - <th>Imagen</th> agregado en thead (línea 534)
+   - Muestra miniatura clickeable en tbody (línea 1187)
+   - Llama a showImageModal() al hacer click
+
+✅ 8. Colspan actualizado de 8 a 9 en empty state
+
+TODAS LAS FUNCIONALIDADES HAN SIDO IMPLEMENTADAS CORRECTAMENTE

@@ -420,95 +420,7 @@
             color: #1976d2;
             margin-bottom: 5px;
         }
-    
-        /* Selector personalizado con imágenes */
-        .custom-select-container {
-            position: relative;
-            width: 100%;
-        }
-        
-        .custom-select-button {
-            width: 100%;
-            padding: 12px;
-            background: white;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            cursor: pointer;
-            user-select: none;
-            transition: all 0.3s;
-        }
-        
-        .custom-select-button:hover {
-            border-color: #667eea;
-        }
-        
-        .custom-dropdown {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            margin-top: 5px;
-            background: white;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            z-index: 1000;
-        }
-        
-        .product-option {
-            display: flex;
-            align-items: center;
-            padding: 10px;
-            cursor: pointer;
-            border-bottom: 1px solid #f0f0f0;
-            transition: background 0.2s;
-        }
-        
-        .product-option:hover {
-            background: #f5f5f5;
-        }
-        
-        .product-option:last-child {
-            border-bottom: none;
-        }
-        
-        .product-option-image {
-            width: 50px;
-            height: 50px;
-            object-fit: cover;
-            border-radius: 5px;
-            margin-right: 12px;
-            border: 1px solid #ddd;
-        }
-        
-        .product-option-no-image {
-            width: 50px;
-            height: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #f0f0f0;
-            border-radius: 5px;
-            margin-right: 12px;
-            font-size: 24px;
-        }
-        
-        .product-option-info {
-            flex: 1;
-        }
-        
-        .product-option-name {
-            font-weight: 500;
-            color: #333;
-            margin-bottom: 3px;
-        }
-        
-        .product-option-details {
-            font-size: 12px;
-            color: #666;
-        }
-
-        </style>
+    </style>
 </head>
 <body>
     <div class="container">
@@ -595,6 +507,17 @@
                 <div class="search-bar">
                     <input type="text" id="searchProducts" placeholder="🔍 Buscar productos..." onkeyup="filterProducts()">
                     <select id="categoryFilter" onchange="filterProducts()">
+                        <option value="">Todas las categorías</option>
+                        <option value="Remeras">Remeras</option>
+                        <option value="Recuerdos">Recuerdos</option>
+                        <option value="Botellas">Botellas</option>
+                        <option value="Stickers">Stickers</option>
+                        <option value="Gorras">Gorras</option>
+                        <option value="Llaveros">Llaveros</option>
+                        <option value="Tazas">Tazas</option>
+                        <option value="Materiales">Materiales</option>
+                        <option value="Telas">Telas</option>
+                        <option value="Otros">Otros</option>
                     </select>
                 </div>
 
@@ -607,7 +530,7 @@
                                 <th>Marca</th>
                                 <th>Categoría</th>
                                 <th>Stock</th>
-                                <th>Precio de Venta</th>
+                                <th>Precio</th>
                                 <th>Imagen</th>
                                 <th>Estado</th>
                                 <th>Acciones</th>
@@ -658,85 +581,40 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label>Seleccionar Producto</label>
-                        <!-- Selector personalizado con imágenes -->
-                        <div class="custom-select-container">
-                            <div id="customSelectButton" class="custom-select-button" onclick="toggleProductDropdown()">
-                                <span id="selectedProductText">-- Seleccionar Producto --</span>
-                                <span style="float:right;">▼</span>
-                            </div>
-                            <div id="productDropdown" class="custom-dropdown" style="display:none;">
-                                <input type="text" id="productSearchInput" placeholder="🔍 Buscar producto..." onkeyup="filterProductOptions()" style="width:100%;padding:10px;border:none;border-bottom:2px solid #eee;box-sizing:border-box;">
-                                <div id="productOptionsList" style="max-height:300px;overflow-y:auto;">
-                                    <!-- Las opciones se cargan dinámicamente -->
-                                </div>
-                            </div>
-                        </div>
-                        <input type="hidden" id="saleProduct">
-                        <!-- Preview de imagen del producto seleccionado -->
-                        <div id="saleProductImagePreview" style="margin-top:15px;display:none;">
-                            <img id="saleProductImage" style="max-width:150px;max-height:150px;border-radius:8px;border:2px solid #ddd;box-shadow:0 2px 4px rgba(0,0,0,0.1);">
-                        </div>
+                        <select id="saleProduct" onchange="updateSalePrice()">
+                            <option value="">-- Seleccionar --</option>
+                        </select>
                     </div>
                     <div class="form-group">
                         <label>Cantidad <span id="saleUnitLabel"></span></label>
-                        <input type="number" id="saleQuantity" min="1" step="1" value="1" onchange="updateSaleTotal()">
+                        <input type="number" id="saleQuantity" min="0.01" step="0.01" value="1" onchange="updateSaleTotal()">
                     </div>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
                         <label>Precio Unitario</label>
-                        <input type="text" id="salePrice" readonly style="text-align:left; font-weight:bold;">
+                        <input type="number" id="salePrice" readonly>
                     </div>
                     <div class="form-group">
-                        <label>Subtotal Item</label>
-                        <input type="text" id="saleTotal" readonly style="font-weight:bold; font-size:18px; text-align:left;">
+                        <label>Total</label>
+                        <input type="number" id="saleTotal" readonly style="font-weight: bold; font-size: 18px;">
                     </div>
                 </div>
 
-                <div style="text-align: center; margin-bottom: 20px;">
-                    <button class="btn btn-primary" onclick="addToCart()" style="width: 100%; font-size: 16px;">🛒 Agregar al Carrito</button>
-                </div>
-
-                <!-- Carrito de Compras -->
-                <div id="cartSection" style="display:none; background:#f8f9fa; padding:20px; border-radius:10px; margin-bottom:20px;">
-                    <h3 style="margin:0 0 15px 0;">🛒 Carrito de Compras</h3>
-                    <div class="table-container" style="margin-bottom:15px;">
-                        <table style="font-size:14px;">
-                            <thead>
-                                <tr>
-                                    <th>Producto</th>
-                                    <th>Cantidad</th>
-                                    <th>P. Unit.</th>
-                                    <th>Subtotal</th>
-                                    <th>Acción</th>
-                                </tr>
-                            </thead>
-                            <tbody id="cartItems">
-                            </tbody>
-                        </table>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Cliente *</label>
+                        <select id="saleCustomer" required>
+                            <option value="">-- Seleccionar Cliente --</option>
+                        </select>
                     </div>
-                    <div style="text-align:right; padding:10px; background:white; border-radius:5px; margin-bottom:15px;">
-                        <strong style="font-size:18px;">Total Venta: <span id="cartTotal" style="color:#28a745;">Gs. 0</span></strong>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Cliente *</label>
-                            <select id="saleCustomer" required>
-                                <option value="">-- Seleccionar Cliente --</option>
-                            </select>
-                        </div>
-                        <div class="form-group" style="display: flex; align-items: flex-end;">
-                            <button type="button" class="btn btn-primary" onclick="openClientModal()" style="width: 100%;">➕ Nuevo Cliente</button>
-                        </div>
-                    </div>
-
-                    <div style="display:flex; gap:10px;">
-                        <button class="btn btn-success" onclick="completeSale()" style="flex: 1; font-size: 16px;">✅ Completar Venta</button>
-                        <button class="btn btn-danger" onclick="clearCart()" style="padding: 10px 20px;">🗑️ Vaciar</button>
+                    <div class="form-group" style="display: flex; align-items: flex-end;">
+                        <button type="button" class="btn btn-primary" onclick="openClientModal()" style="width: 100%;">➕ Nuevo Cliente</button>
                     </div>
                 </div>
+
+                <button class="btn btn-success" onclick="registerSale()" style="width: 100%; font-size: 16px;">✅ Registrar Venta</button>
 
                 <h3 style="margin-top: 40px; margin-bottom: 15px;">Historial de Ventas</h3>
                 <div class="table-container">
@@ -804,41 +682,6 @@
             <form id="productForm" onsubmit="saveProduct(event)">
                 <input type="hidden" id="productId">
 
-                <!-- Sección de vista previa del producto (solo visible en edición) -->
-                <div id="productDetailView" style="display:none;background:#f5f5f5;padding:20px;border-radius:8px;margin-bottom:20px;">
-                    <div style="display:grid;grid-template-columns:200px 1fr;gap:20px;align-items:start;">
-                        <div>
-                            <img id="detailProductImage" style="width:100%;border-radius:8px;border:2px solid #ddd;display:none;">
-                            <div id="noImagePlaceholder" style="width:100%;height:200px;background:#e0e0e0;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#999;">
-                                📦 Sin imagen
-                            </div>
-                        </div>
-                        <div>
-                            <h3 id="detailProductName" style="margin:0 0 15px 0;color:#667eea;"></h3>
-                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;">
-                                <div style="background:white;padding:15px;border-radius:8px;border-left:4px solid #ff6b6b;">
-                                    <div style="font-size:12px;color:#666;margin-bottom:5px;">💰 Precio de Compra</div>
-                                    <div id="detailCostPrice" style="font-size:20px;font-weight:bold;color:#ff6b6b;"></div>
-                                </div>
-                                <div style="background:white;padding:15px;border-radius:8px;border-left:4px solid #51cf66;">
-                                    <div style="font-size:12px;color:#666;margin-bottom:5px;">💵 Precio de Venta</div>
-                                    <div id="detailSalePrice" style="font-size:20px;font-weight:bold;color:#51cf66;"></div>
-                                </div>
-                            </div>
-                            <div style="margin-top:15px;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-                                <div>
-                                    <span style="font-size:12px;color:#666;">Stock:</span>
-                                    <strong id="detailStock" style="margin-left:5px;"></strong>
-                                </div>
-                                <div>
-                                    <span style="font-size:12px;color:#666;">Estado:</span>
-                                    <span id="detailStatus" style="margin-left:5px;"></span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
                 <div class="form-row">
                     <div class="form-group">
                         <label>Código del Producto *</label>
@@ -847,8 +690,18 @@
                     <div class="form-group">
                         <label>Categoría *</label>
                         <select id="productCategory" required>
+                            <option value="">-- Seleccionar --</option>
+                            <option value="Remeras">Remeras</option>
+                            <option value="Recuerdos">Recuerdos</option>
+                            <option value="Botellas">Botellas</option>
+                            <option value="Stickers">Stickers</option>
+                            <option value="Gorras">Gorras</option>
+                            <option value="Llaveros">Llaveros</option>
+                            <option value="Tazas">Tazas</option>
+                            <option value="Materiales">Materiales</option>
+                            <option value="Telas">Telas</option>
+                            <option value="Otros">Otros</option>
                         </select>
-                        <button type="button" class="btn btn-secondary" onclick="openCategoryModal()" style="margin-top:10px;width:100%;">⚙️ Gestionar Categorías</button>
                     </div>
                 </div>
 
@@ -866,7 +719,7 @@
                 <div class="form-row-3">
                     <div class="form-group">
                         <label>Stock *</label>
-                        <input type="number" id="productStock" required min="0" step="1" placeholder="Cantidad">
+                        <input type="number" id="productStock" required min="0" step="0.01" placeholder="Cantidad">
                     </div>
                     <div class="form-group">
                         <label>Unidad de Medida *</label>
@@ -886,7 +739,7 @@
                     </div>
                     <div class="form-group">
                         <label>Stock Mínimo</label>
-                        <input type="number" id="productMinStock" min="0" step="1" value="3" placeholder="Mínimo">
+                        <input type="number" id="productMinStock" min="0" step="0.01" value="5" placeholder="Mínimo">
                     </div>
                 </div>
 
@@ -904,14 +757,6 @@
                <!-- Campo de Foto -->
 <div class="form-group">
     <label>📸 Foto del Producto (Opcional)</label>
-    <div id="dropZone" style="border:2px dashed #ccc;border-radius:5px;padding:20px;text-align:center;background:#f9f9f9;margin-bottom:10px;cursor:pointer;"
-         ondragenter="event.preventDefault();event.stopPropagation();this.style.background='#e3f2fd';"
-         ondragover="event.preventDefault();event.stopPropagation();this.style.background='#e3f2fd';"
-         ondragleave="event.preventDefault();event.stopPropagation();this.style.background='#f9f9f9';"
-         ondrop="handleDrop(event)"
-         onclick="document.getElementById('productImage').click()">
-        <p style="margin:0;color:#666;">🖼️ Arrastra una imagen aquí o haz clic para seleccionar</p>
-    </div>
     <div style="display:flex;gap:10px;margin-bottom:10px;">
         <input type="file" id="productImage" accept="image/*" style="display:none;" onchange="handleImageSelect(event)">
         <button type="button" class="btn btn-primary" onclick="document.getElementById('productImage').click()">📁 Subir Archivo</button>
@@ -955,7 +800,7 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label>Número de Documento *</label>
-                        <input type="text" id="clientDocNumber" required placeholder="Ej: 1.234.567" oninput="formatDocumentNumber(this)">
+                        <input type="text" id="clientDocNumber" required placeholder="Ej: 1234567">
                     </div>
                     <div class="form-group">
                         <label>Nombre Completo *</label>
@@ -1003,150 +848,15 @@
         let products = [];
         let sales = [];
         let clients = [];
-        let cart = []; // Carrito de compras temporal
 
         // Variables globales
         let editingProductId = null;
         let editingClientId = null;
         let selectedImageFile = null;
-        let currentCameraMode = 'environment'; // 'user' para frontal, 'environment' para trasera
 
-        // Categorías del sistema
-        let categories = [];
-
-        // Cargar categorías desde Supabase
-        async function loadCategories() {
-            try {
-                categories = await loadCategoriesFromDB();
-                updateCategorySelects();
-            } catch (error) {
-                console.error('Error al cargar categorías:', error);
-                // Usar categorías predeterminadas si falla
-                categories = [
-                    'Remeras', 'Recuerdos', 'Botellas', 'Stickers', 
-                    'Gorras', 'Llaveros', 'Tazas', 'Materiales', 'Telas', 'Otros'
-                ];
-                updateCategorySelects();
-            }
-        }
-
-        // Ya no se usa - las categorías se guardan directamente en Supabase
-
-        // Actualizar todos los selects de categorías
-        function updateCategorySelects() {
-            // Select del formulario de productos
-            const productCategorySelect = document.getElementById('productCategory');
-            if (productCategorySelect) {
-                const currentValue = productCategorySelect.value;
-                productCategorySelect.innerHTML = '<option value="">-- Seleccionar --</option>';
-                categories.forEach(cat => {
-                    productCategorySelect.innerHTML += `<option value="${cat}">${cat}</option>`;
-                });
-                if (currentValue && categories.includes(currentValue)) {
-                    productCategorySelect.value = currentValue;
-                }
-            }
-
-            // Select del filtro
-            const categoryFilter = document.getElementById('categoryFilter');
-            if (categoryFilter) {
-                const currentFilter = categoryFilter.value;
-                categoryFilter.innerHTML = '<option value="">Todas las categorías</option>';
-                categories.forEach(cat => {
-                    categoryFilter.innerHTML += `<option value="${cat}">${cat}</option>`;
-                });
-                if (currentFilter && categories.includes(currentFilter)) {
-                    categoryFilter.value = currentFilter;
-                }
-            }
-
-            // Lista en el modal de gestión
-            if (document.getElementById('categoriesList')) {
-                updateCategoriesList();
-            }
-        }
-
-        // Abrir modal de categorías
-        function openCategoryModal() {
-            document.getElementById('categoryModal').classList.add('active');
-            updateCategoriesList();
-        }
-
-        // Cerrar modal de categorías
-        function closeCategoryModal() {
-            document.getElementById('categoryModal').classList.remove('active');
-            document.getElementById('newCategoryName').value = '';
-        }
-
-        // Agregar nueva categoría
-        async function addCategory() {
-            const categoryName = document.getElementById('newCategoryName').value.trim();
-            
-            if (!categoryName) {
-                alert('⚠️ Por favor ingresa un nombre para la categoría');
-                return;
-            }
-
-            if (categories.includes(categoryName)) {
-                alert('⚠️ Esta categoría ya existe');
-                return;
-            }
-
-            try {
-                await saveCategoryToDB(categoryName);
-                categories.push(categoryName);
-                categories.sort();
-                updateCategorySelects();
-                document.getElementById('newCategoryName').value = '';
-                alert('✅ Categoría agregada correctamente');
-            } catch (error) {
-                alert('❌ Error al agregar categoría: ' + error.message);
-            }
-        }
-
-        // Eliminar categoría
-        async function deleteCategory(categoryName) {
-            if (!confirm(`¿Estás seguro de eliminar la categoría "${categoryName}"?
-
-Nota: Los productos con esta categoría no se eliminarán.`)) {
-                return;
-            }
-
-            try {
-                await deleteCategoryFromDB(categoryName);
-                categories = categories.filter(cat => cat !== categoryName);
-                updateCategorySelects();
-                alert('✅ Categoría eliminada correctamente');
-            } catch (error) {
-                alert('❌ Error al eliminar categoría: ' + error.message);
-            }
-        }
-
-        // Actualizar lista de categorías en el modal
-        function updateCategoriesList() {
-            const list = document.getElementById('categoriesList');
-            if (!list) return;
-            
-            list.innerHTML = '';
-
-            if (categories.length === 0) {
-                list.innerHTML = '<p style="color:#999;text-align:center;padding:20px;">No hay categorías</p>';
-                return;
-            }
-
-            categories.forEach(cat => {
-                list.innerHTML += `
-                    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px;border-bottom:1px solid #eee;">
-                        <span style="font-weight:500;">${cat}</span>
-                        <button class="btn btn-danger" onclick="deleteCategory('${cat}')" style="padding:5px 10px;font-size:12px;">🗑️ Eliminar</button>
-                    </div>
-                `;
-            });
-        }
 
         // Inicializar
         document.addEventListener('DOMContentLoaded', async function() {
-            await loadCategories();
             await loadProducts();
             await loadSales();
             await loadClients();
@@ -1203,42 +913,18 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
                     document.getElementById('productUnit').value = product.unit || 'unidades';
                     document.getElementById('productCost').value = product.cost ? product.cost.toLocaleString('de-DE') : '';
                     document.getElementById('productPrice').value = product.price.toLocaleString('de-DE');
-                    document.getElementById('productMinStock').value = product.minStock || 3;
+                    document.getElementById('productMinStock').value = product.minStock || 5;
                     document.getElementById('productDescription').value = product.description || '';
                     editingProductId = productId;
 
-                    // Mostrar vista detallada del producto
-                    document.getElementById('productDetailView').style.display = 'block';
-                    document.getElementById('detailProductName').textContent = product.name + (product.brand ? ` - ${product.brand}` : '');
-                    document.getElementById('detailCostPrice').textContent = formatGuaranies(product.cost || 0);
-                    document.getElementById('detailSalePrice').textContent = formatGuaranies(product.price);
-                    document.getElementById('detailStock').textContent = formatUnit(product.stock, product.unit);
-
-                    // Calcular estado
-                    const stockStatus = product.stock <= product.minStock ?
-                        '<span class="badge badge-danger">Stock Bajo</span>' :
-                        product.stock <= product.minStock * 2 ?
-                        '<span class="badge badge-warning">Stock Medio</span>' :
-                        '<span class="badge badge-success">Stock OK</span>';
-                    document.getElementById('detailStatus').innerHTML = stockStatus;
-
-                    // Mostrar imagen en la vista detallada
+                    // Mostrar imagen si existe
                     if (product.imageUrl) {
-                        document.getElementById('detailProductImage').src = product.imageUrl;
-                        document.getElementById('detailProductImage').style.display = 'block';
-                        document.getElementById('noImagePlaceholder').style.display = 'none';
-
-                        // También en el preview del formulario
                         document.getElementById('previewImg').src = product.imageUrl;
                         document.getElementById('imagePreview').style.display = 'block';
-                    } else {
-                        document.getElementById('detailProductImage').style.display = 'none';
-                        document.getElementById('noImagePlaceholder').style.display = 'flex';
                     }
                 }
             } else {
                 document.getElementById('modalTitle').textContent = 'Agregar Producto';
-                document.getElementById('productDetailView').style.display = 'none';
                 editingProductId = null;
                 // Generar código automático para producto nuevo
                 document.getElementById('productCode').value = generateProductCode();
@@ -1264,34 +950,34 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
                 unit: document.getElementById('productUnit').value,
                 cost: parseFormattedPrice(document.getElementById('productCost').value),
                 price: parseFormattedPrice(document.getElementById('productPrice').value),
-                minStock: parseFloat(document.getElementById('productMinStock').value) || 3,
-                description: document.getElementById('productDescription')?.value || ''
+                minStock: parseFloat(document.getElementById('productMinStock').value) || 5,
+                description: document.getElementById('productDescription').value
             };
 
+
+// Subir imagen si hay
+  if (selectedImageFile && productData.code) {
+      const imageUrl = await uploadProductImage(selectedImageFile, productData.code);
+      if (imageUrl) {
+          productData.imageUrl = imageUrl;
+      }
+  }
+
             // Si hay imagen, subirla primero
+            let imageUrl = '';
             if (selectedImageFile && productData.code) {
-                const imageUrl = await uploadProductImage(selectedImageFile, productData.code);
+                imageUrl = await uploadProductImage(selectedImageFile, productData.code);
                 if (imageUrl) {
                     productData.imageUrl = imageUrl;
                 }
             }
 
             try {
-
-                // Obtener el ID del producto del campo oculto o de la variable global
-
-                const productId = document.getElementById('productId').value || editingProductId;
-
-                if (productId) {
-
-                    // Modo edición - actualizar producto existente
-                    await updateProductInDB(parseInt(productId), productData);
+                if (editingProductId) {
+                    await updateProductInDB(editingProductId, productData);
                     alert('✅ Producto actualizado correctamente');
                     closeProductModal();
                 } else {
-
-                    // Modo creación - crear nuevo producto
-
                     await saveProductToDB(productData);
                     alert('✅ Producto agregado correctamente');
 
@@ -1299,29 +985,27 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
                     document.getElementById('productForm').reset();
                     document.getElementById('productCode').value = generateProductCode();
                     document.getElementById('productUnit').value = 'unidades';
-                    document.getElementById('productMinStock').value = 3;
+                    document.getElementById('productMinStock').value = 5;
                     document.getElementById('productName').focus();
-                    clearImage();
                 }
 
                 await loadProducts();
                 await updateDashboard();
             } catch (error) {
-                console.error('Error completo:', error);
                 alert('Error al guardar producto: ' + error.message);
             }
         }
 
         // Formatear guaraníes con separador de miles (punto decimal)
         function formatGuaranies(amount) {
-            if (amount === null || amount === undefined || amount === '') return 'Gs. 0';
+            if (amount === null || amount === undefined || amount === '') return '₲ 0';
             // Convertir a número y redondear
             const num = Math.round(Number(amount));
             // Convertir a string
             let str = num.toString();
             // Aplicar separador de miles (punto)
             str = str.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-            const result = `Gs. ${str}`;
+            const result = `₲ ${str}`;
             console.log(`formatGuaranies(${amount}) = ${result}`); // DEBUG
             return result;
         }
@@ -1334,28 +1018,6 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
         }
 
 
-
-        // Formatear número con puntos (auxiliar)
-        function formatNumberWithDots(number) {
-            if (!number) return '';
-            const str = number.toString();
-            return str.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-        }
-
-        // Formatear número de documento con puntos
-        function formatDocumentNumber(input) {
-            // Obtener solo números
-            let value = input.value.replace(/\D/g, '');
-
-            // Aplicar formato con puntos cada 3 dígitos
-            if (value.length > 0) {
-                value = value.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-            }
-
-            input.value = value;
-            // Guardar valor sin formato en data attribute
-            input.dataset.rawValue = value.replace(/\./g, '');
-        }
 
         // ===== FUNCIONES PARA MANEJO DE FOTOS =====
         function handleImageSelect(event) {
@@ -1385,314 +1047,59 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
             reader.readAsDataURL(file);
         }
 
-        function handleDrop(event) {
-            event.preventDefault();
-            event.stopPropagation();
-
-            // Restaurar estilo
-            const dropZone = document.getElementById('dropZone');
-            if (dropZone) {
-                dropZone.style.background = '#f9f9f9';
-            }
-
-            // Verificar que hay archivos
-            if (!event.dataTransfer || !event.dataTransfer.files) {
-                console.log('No se encontraron archivos en el evento');
-                return;
-            }
-
-            const files = event.dataTransfer.files;
-            if (files.length > 0) {
-                const file = files[0];
-
-                // Validar que sea imagen
-                if (!file.type.match('image.*')) {
-                    alert('❌ Por favor arrastra una imagen');
-                    return;
-                }
-
-                // Validar tamaño (5MB máximo)
-                if (file.size > 5 * 1024 * 1024) {
-                    alert('❌ La imagen es muy grande. Máximo 5MB.');
-                    return;
-                }
-
-                selectedImageFile = file;
-
-                // Mostrar preview
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    document.getElementById('previewImg').src = e.target.result;
-                    document.getElementById('imagePreview').style.display = 'block';
-                };
-                reader.readAsDataURL(file);
-            }
-        }
-
         async function takePhoto() {
             try {
-                await startCamera();
-            } catch (error) {
-                alert('❌ No se pudo acceder a la cámara: ' + error.message);
-            }
-        }
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
 
-        async function startCamera() {
-            // Detener stream anterior si existe
-            if (window.currentStream) {
-                window.currentStream.getTracks().forEach(track => track.stop());
-            }
+                // Crear modal con video
+                const modal = document.createElement('div');
+                modal.innerHTML = `
+                    <div style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:10000;display:flex;align-items:center;justify-content:center;">
+                        <div style="background:white;padding:20px;border-radius:10px;max-width:90%;max-height:90%;">
+                            <video id="cameraVideo" autoplay style="max-width:100%;"></video>
+                            <div style="margin-top:10px;text-align:center;">
+                                <button class="btn btn-primary" onclick="capturePhoto()">📸 Capturar</button>
+                                <button class="btn btn-secondary" onclick="closeCamera()">❌ Cancelar</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
 
-            // Constraints mejorados para mejor calidad
-            const constraints = {
-                video: {
-                    facingMode: currentCameraMode,
-                    width: { ideal: 1920 },
-                    height: { ideal: 1080 },
-                    aspectRatio: { ideal: 4/3 }
-                }
-            };
-
-            const stream = await navigator.mediaDevices.getUserMedia(constraints);
-
-            // Si ya existe el modal, solo actualizar el video
-            if (window.cameraModal) {
                 const video = document.getElementById('cameraVideo');
                 video.srcObject = stream;
+
                 window.currentStream = stream;
-                return;
-            }
-
-            // Crear modal con video mejorado y controles profesionales
-            const modal = document.createElement('div');
-            modal.innerHTML = `
-                <div style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;">
-                    <div style="background:white;padding:20px;border-radius:15px;max-width:650px;width:100%;box-shadow:0 10px 40px rgba(0,0,0,0.3);">
-                        <h3 style="margin:0 0 15px 0;text-align:center;color:#333;">📸 Tomar Fotografía</h3>
-
-                        <!-- Vista previa de cámara -->
-                        <div style="position:relative;background:#000;border-radius:10px;overflow:hidden;">
-                            <video id="cameraVideo" autoplay playsinline style="width:100%;height:auto;display:block;"></video>
-
-                            <!-- Grilla de ayuda compositiva (regla de tercios) -->
-                            <div id="gridOverlay" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;display:none;">
-                                <svg width="100%" height="100%" style="position:absolute;top:0;left:0;">
-                                    <line x1="33.33%" y1="0" x2="33.33%" y2="100%" stroke="white" stroke-width="1" opacity="0.3"/>
-                                    <line x1="66.66%" y1="0" x2="66.66%" y2="100%" stroke="white" stroke-width="1" opacity="0.3"/>
-                                    <line x1="0" y1="33.33%" x2="100%" y2="33.33%" stroke="white" stroke-width="1" opacity="0.3"/>
-                                    <line x1="0" y1="66.66%" x2="100%" y2="66.66%" stroke="white" stroke-width="1" opacity="0.3"/>
-                                </svg>
-                            </div>
-
-                            <!-- Marco de enfoque central -->
-                            <div id="focusFrame" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:70%;height:70%;border:2px solid rgba(255,255,255,0.5);border-radius:10px;pointer-events:none;"></div>
-
-                            <!-- Efecto flash -->
-                            <div id="captureFlash" style="position:absolute;top:0;left:0;width:100%;height:100%;background:white;opacity:0;pointer-events:none;transition:opacity 0.1s;"></div>
-
-                            <!-- Indicador de cámara activa -->
-                            <div style="position:absolute;top:10px;left:10px;background:rgba(255,0,0,0.8);color:white;padding:5px 10px;border-radius:15px;font-size:12px;font-weight:bold;">
-                                ● REC
-                            </div>
-
-                            <!-- Información de resolución -->
-                            <div id="resolutionInfo" style="position:absolute;top:10px;right:10px;background:rgba(0,0,0,0.7);color:white;padding:5px 10px;border-radius:5px;font-size:11px;"></div>
-                        </div>
-
-                        <!-- Controles de cámara -->
-                        <div style="margin-top:15px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-                            <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;user-select:none;">
-                                <input type="checkbox" id="gridToggle" onchange="toggleGrid(this.checked)" style="cursor:pointer;">
-                                Grilla
-                            </label>
-                            <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;user-select:none;">
-                                <input type="checkbox" id="focusFrameToggle" checked onchange="toggleFocusFrame(this.checked)" style="cursor:pointer;">
-                                Marco
-                            </label>
-                            <div style="flex:1;"></div>
-                            <span style="font-size:12px;color:#666;">Zoom:</span>
-                            <input type="range" id="zoomSlider" min="1" max="3" step="0.1" value="1" onchange="adjustZoom(this.value)" style="width:100px;cursor:pointer;">
-                            <span id="zoomValue" style="font-size:12px;color:#666;min-width:35px;">1.0x</span>
-                        </div>
-
-                        <!-- Botones principales -->
-                        <div style="margin-top:20px;text-align:center;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
-                            <button class="btn btn-success" onclick="capturePhoto()" style="flex:1;min-width:140px;font-size:16px;padding:12px;">📸 Capturar</button>
-                            <button class="btn btn-secondary" onclick="flipCamera()" style="padding:12px 20px;">🔄 Cámara</button>
-                            <button class="btn btn-danger" onclick="closeCamera()" style="padding:12px 20px;">❌ Cerrar</button>
-                        </div>
-
-                        <p style="margin:10px 0 0 0;text-align:center;font-size:11px;color:#999;">
-                            💡 Centra el producto en el marco • Usa buena iluminación • Mantén el dispositivo estable
-                        </p>
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(modal);
-
-            const video = document.getElementById('cameraVideo');
-            video.srcObject = stream;
-
-            // Mostrar información de resolución cuando el video esté listo
-            video.addEventListener('loadedmetadata', () => {
-                const resInfo = document.getElementById('resolutionInfo');
-                if (resInfo) {
-                    resInfo.textContent = `${video.videoWidth}x${video.videoHeight}`;
-                }
-
-                // Verificar si el dispositivo soporta zoom
-                const track = stream.getVideoTracks()[0];
-                const capabilities = track.getCapabilities ? track.getCapabilities() : {};
-
-                if (capabilities.zoom) {
-                    const zoomSlider = document.getElementById('zoomSlider');
-                    zoomSlider.min = capabilities.zoom.min || 1;
-                    zoomSlider.max = capabilities.zoom.max || 3;
-                    zoomSlider.step = capabilities.zoom.step || 0.1;
-                }
-            });
-
-            window.currentStream = stream;
-            window.cameraModal = modal;
-
-            // Agregar atajo de teclado para capturar (Espacio)
-            window.cameraKeyHandler = (e) => {
-                if (e.code === 'Space' && window.cameraModal) {
-                    e.preventDefault();
-                    capturePhoto();
-                } else if (e.code === 'Escape' && window.cameraModal) {
-                    e.preventDefault();
-                    closeCamera();
-                }
-            };
-            document.addEventListener('keydown', window.cameraKeyHandler);
-        }
-
-        // Función para alternar grilla de composición
-        function toggleGrid(show) {
-            const grid = document.getElementById('gridOverlay');
-            if (grid) {
-                grid.style.display = show ? 'block' : 'none';
-            }
-        }
-
-        // Función para alternar marco de enfoque
-        function toggleFocusFrame(show) {
-            const frame = document.getElementById('focusFrame');
-            if (frame) {
-                frame.style.display = show ? 'block' : 'none';
-            }
-        }
-
-        // Función para ajustar zoom
-        function adjustZoom(value) {
-            const zoomValueDisplay = document.getElementById('zoomValue');
-            if (zoomValueDisplay) {
-                zoomValueDisplay.textContent = parseFloat(value).toFixed(1) + 'x';
-            }
-
-            if (window.currentStream) {
-                const track = window.currentStream.getVideoTracks()[0];
-                const capabilities = track.getCapabilities ? track.getCapabilities() : {};
-
-                if (capabilities.zoom) {
-                    track.applyConstraints({
-                        advanced: [{ zoom: parseFloat(value) }]
-                    }).catch(err => {
-                        console.log('Zoom no soportado:', err);
-                    });
-                } else {
-                    // Fallback: zoom digital mediante CSS transform
-                    const video = document.getElementById('cameraVideo');
-                    if (video) {
-                        video.style.transform = `scale(${value})`;
-                        video.style.transformOrigin = 'center center';
-                    }
-                }
-            }
-        }
-
-        async function flipCamera() {
-            // Cambiar entre frontal y trasera
-            currentCameraMode = currentCameraMode === 'user' ? 'environment' : 'user';
-            try {
-                await startCamera();
+                window.cameraModal = modal;
             } catch (error) {
-                alert('❌ No se pudo cambiar la cámara: ' + error.message);
-                // Volver al modo anterior si falla
-                currentCameraMode = currentCameraMode === 'user' ? 'environment' : 'user';
+                alert('❌ No se pudo acceder a la cámara: ' + error.message);
             }
         }
 
         function capturePhoto() {
             const video = document.getElementById('cameraVideo');
             const canvas = document.createElement('canvas');
-
-            // Usar resolución del video
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
+            canvas.getContext('2d').drawImage(video, 0, 0);
 
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(video, 0, 0);
-
-            // Efecto flash visual
-            const flash = document.getElementById('captureFlash');
-            if (flash) {
-                flash.style.opacity = '0.7';
-                setTimeout(() => flash.style.opacity = '0', 100);
-            }
-
-            // Comprimir imagen para tamaño óptimo
-            // Si la imagen es muy grande, redimensionar
-            let finalCanvas = canvas;
-            const maxDimension = 1600; // Máximo ancho o alto
-
-            if (canvas.width > maxDimension || canvas.height > maxDimension) {
-                finalCanvas = document.createElement('canvas');
-                const scale = Math.min(maxDimension / canvas.width, maxDimension / canvas.height);
-                finalCanvas.width = canvas.width * scale;
-                finalCanvas.height = canvas.height * scale;
-
-                const finalCtx = finalCanvas.getContext('2d');
-                finalCtx.drawImage(canvas, 0, 0, finalCanvas.width, finalCanvas.height);
-            }
-
-            // Convertir a blob con calidad ajustada (0.85 = 85% calidad)
-            finalCanvas.toBlob((blob) => {
-                // Verificar tamaño del archivo
-                const sizeMB = blob.size / (1024 * 1024);
-                console.log(`Tamaño de imagen: ${sizeMB.toFixed(2)} MB`);
-
-                if (sizeMB > 5) {
-                    alert('⚠️ La imagen es muy grande. Intenta con mejor iluminación o más cerca del producto.');
-                    return;
-                }
-
+            canvas.toBlob((blob) => {
                 selectedImageFile = new File([blob], 'photo.jpg', { type: 'image/jpeg' });
 
-                document.getElementById('previewImg').src = finalCanvas.toDataURL('image/jpeg', 0.85);
+                document.getElementById('previewImg').src = canvas.toDataURL();
                 document.getElementById('imagePreview').style.display = 'block';
 
                 closeCamera();
-            }, 'image/jpeg', 0.85);
+            }, 'image/jpeg');
         }
 
         function closeCamera() {
             if (window.currentStream) {
                 window.currentStream.getTracks().forEach(track => track.stop());
-                window.currentStream = null;
             }
             if (window.cameraModal) {
                 window.cameraModal.remove();
-                window.cameraModal = null;
             }
-            // Remover listener de teclado
-            if (window.cameraKeyHandler) {
-                document.removeEventListener('keydown', window.cameraKeyHandler);
-                window.cameraKeyHandler = null;
-            }
-            // Resetear zoom
-            currentCameraMode = 'environment';
         }
 
         function clearImage() {
@@ -1820,8 +1227,7 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
 
             rows.forEach(row => {
                 const text = row.textContent.toLowerCase();
-                // Categoría está en la columna 3 (índice 3): Código, Nombre, Marca, Categoría
-                const category = row.children[3]?.textContent || '';
+                const category = row.children[2]?.textContent || '';
 
                 const matchesSearch = text.includes(searchTerm);
                 const matchesCategory = !categoryFilter || category === categoryFilter;
@@ -1830,114 +1236,24 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
             });
         }
 
-
-        // ===== FUNCIONES PARA SELECTOR PERSONALIZADO DE PRODUCTOS =====
-        
-        function toggleProductDropdown() {
-            const dropdown = document.getElementById('productDropdown');
-            dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
-        }
-        
-        function closeProductDropdown() {
-            document.getElementById('productDropdown').style.display = 'none';
-        }
-        
-        // Cerrar dropdown al hacer click fuera
-        document.addEventListener('click', function(event) {
-            const container = document.querySelector('.custom-select-container');
-            if (container && !container.contains(event.target)) {
-                closeProductDropdown();
-            }
-        });
-        
-        function selectProduct(productId) {
-            const product = products.find(p => p.id === productId);
-            if (!product) return;
-
-            // Actualizar campo oculto
-            document.getElementById('saleProduct').value = productId;
-
-            // Actualizar texto del botón
-            document.getElementById('selectedProductText').textContent = product.name + ' (' + formatUnit(product.stock, product.unit) + ')';
-
-            // Mostrar imagen del producto si existe
-            const imagePreview = document.getElementById('saleProductImagePreview');
-            const imageElement = document.getElementById('saleProductImage');
-
-            if (product.imageUrl) {
-                imageElement.src = product.imageUrl;
-                imagePreview.style.display = 'block';
-            } else {
-                imagePreview.style.display = 'none';
-            }
-
-            // Cerrar dropdown
-            closeProductDropdown();
-
-            // Actualizar precio
-            updateSalePrice();
-        }
-        
-        function filterProductOptions() {
-            const searchTerm = document.getElementById('productSearchInput').value.toLowerCase();
-            const options = document.querySelectorAll('.product-option');
-            
-            options.forEach(option => {
-                const text = option.textContent.toLowerCase();
-                option.style.display = text.includes(searchTerm) ? 'flex' : 'none';
-            });
-        }
-        
-        function loadProductOptions() {
-            const optionsList = document.getElementById('productOptionsList');
-            optionsList.innerHTML = '';
-            
-            // Filtrar solo productos con stock
-            const availableProducts = products.filter(p => p.stock > 0);
-            
-            if (availableProducts.length === 0) {
-                optionsList.innerHTML = '<div style="padding:20px;text-align:center;color:#999;">No hay productos disponibles</div>';
-                return;
-            }
-            
-            availableProducts.forEach(product => {
-                const option = document.createElement('div');
-                option.className = 'product-option';
-                option.onclick = () => selectProduct(product.id);
-                
-                // Imagen o placeholder
-                let imageHTML = '';
-                if (product.imageUrl && product.imageUrl.trim() !== '') {
-                    imageHTML = `<img src="${product.imageUrl}" class="product-option-image" alt="${product.name}">`;
-                } else {
-                    imageHTML = '<div class="product-option-no-image">📦</div>';
-                }
-                
-                option.innerHTML = `
-                    ${imageHTML}
-                    <div class="product-option-info">
-                        <div class="product-option-name">${product.name}</div>
-                        <div class="product-option-details">
-                            Stock: ${formatUnit(product.stock, product.unit)} | Precio: ${formatGuaranies(product.price)}
-                        </div>
-                    </div>
-                `;
-                
-                optionsList.appendChild(option);
-            });
-        }
-
         // Cargar formulario de ventas
         async function loadSalesForm() {
-            // Cargar productos en selector personalizado
-            loadProductOptions();
+            // Cargar productos
+            const selectProduct = document.getElementById('saleProduct');
+            selectProduct.innerHTML = '<option value="">-- Seleccionar --</option>';
+
+            products.forEach(product => {
+                if (product.stock > 0) {
+                    selectProduct.innerHTML += `<option value="${product.id}">${product.name} (${formatUnit(product.stock, product.unit)})</option>`;
+                }
+            });
 
             // Cargar clientes
             const selectCustomer = document.getElementById('saleCustomer');
             selectCustomer.innerHTML = '<option value="">-- Seleccionar Cliente --</option>';
 
             clients.forEach(client => {
-                selectCustomer.innerHTML += `<option value="${client.id}">${client.name} - ${client.docType}: ${formatNumberWithDots(client.docNumber)}</option>`;
+                selectCustomer.innerHTML += `<option value="${client.id}">${client.name} - ${client.docType}: ${client.docNumber}</option>`;
             });
 
             await loadSalesHistory();
@@ -1946,11 +1262,9 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
         // Actualizar precio de venta
         function updateSalePrice() {
             const productId = parseInt(document.getElementById('saleProduct').value);
-            
             if (productId) {
                 const product = products.find(p => p.id === productId);
-                document.getElementById('salePrice').value = formatGuaranies(product.price);
-                document.getElementById('salePrice').dataset.rawValue = product.price; // Guardar valor numérico
+                document.getElementById('salePrice').value = product.price;
                 document.getElementById('saleUnitLabel').textContent = `(${product.unit})`;
                 updateSaleTotal();
             } else {
@@ -1962,189 +1276,12 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
 
         // Actualizar total de venta
         function updateSaleTotal() {
-            const priceElement = document.getElementById('salePrice');
-            const price = parseFloat(priceElement.dataset.rawValue) || 0;
+            const price = parseFloat(document.getElementById('salePrice').value) || 0;
             const quantity = parseFloat(document.getElementById('saleQuantity').value) || 0;
-            const total = price * quantity;
-            document.getElementById('saleTotal').value = formatGuaranies(total);
-            document.getElementById('saleTotal').dataset.rawValue = total; // Guardar valor numérico
+            document.getElementById('saleTotal').value = price * quantity;
         }
 
-        // ===== FUNCIONES DEL CARRITO DE COMPRAS =====
-
-        // Agregar producto al carrito
-        function addToCart() {
-            const productId = parseInt(document.getElementById('saleProduct').value);
-            const quantity = parseFloat(document.getElementById('saleQuantity').value);
-
-            if (!productId || !quantity || quantity <= 0) {
-                alert('⚠️ Por favor selecciona un producto y cantidad válida');
-                return;
-            }
-
-            const product = products.find(p => p.id === productId);
-
-            if (quantity > product.stock) {
-                alert(`⚠️ No hay suficiente stock disponible. Stock actual: ${formatUnit(product.stock, product.unit)}`);
-                return;
-            }
-
-            // Verificar si el producto ya está en el carrito
-            const existingItem = cart.find(item => item.productId === productId);
-
-            if (existingItem) {
-                // Si ya existe, actualizar cantidad
-                const newQuantity = existingItem.quantity + quantity;
-                if (newQuantity > product.stock) {
-                    alert(`⚠️ No hay suficiente stock. Stock disponible: ${formatUnit(product.stock, product.unit)}`);
-                    return;
-                }
-                existingItem.quantity = newQuantity;
-                existingItem.subtotal = existingItem.price * newQuantity;
-            } else {
-                // Agregar nuevo item al carrito
-                cart.push({
-                    productId: product.id,
-                    productName: product.name,
-                    productBrand: product.brand || '',
-                    category: product.category,
-                    quantity: quantity,
-                    unit: product.unit,
-                    price: product.price,
-                    subtotal: product.price * quantity,
-                    stock: product.stock
-                });
-            }
-
-            // Limpiar selección de producto
-            document.getElementById('saleProduct').value = '';
-            document.getElementById('selectedProductText').textContent = '-- Seleccionar Producto --';
-            document.getElementById('saleQuantity').value = 1;
-            document.getElementById('salePrice').value = '';
-            document.getElementById('saleTotal').value = '';
-            document.getElementById('saleUnitLabel').textContent = '';
-            document.getElementById('saleProductImagePreview').style.display = 'none';
-
-            // Actualizar vista del carrito
-            updateCartView();
-
-            alert('✅ Producto agregado al carrito');
-        }
-
-        // Actualizar vista del carrito
-        function updateCartView() {
-            const cartItemsBody = document.getElementById('cartItems');
-            const cartSection = document.getElementById('cartSection');
-            const cartTotalSpan = document.getElementById('cartTotal');
-
-            if (cart.length === 0) {
-                cartSection.style.display = 'none';
-                return;
-            }
-
-            cartSection.style.display = 'block';
-            cartItemsBody.innerHTML = '';
-
-            let total = 0;
-
-            cart.forEach((item, index) => {
-                total += item.subtotal;
-
-                cartItemsBody.innerHTML += `
-                    <tr>
-                        <td><strong>${item.productName}</strong>${item.productBrand ? '<br><small>' + item.productBrand + '</small>' : ''}</td>
-                        <td>${formatUnit(item.quantity, item.unit)}</td>
-                        <td>${formatGuaranies(item.price)}</td>
-                        <td><strong>${formatGuaranies(item.subtotal)}</strong></td>
-                        <td class="action-btns">
-                            <button class="action-btn btn-danger" onclick="removeFromCart(${index})" style="padding:5px 10px;font-size:12px;">🗑️</button>
-                        </td>
-                    </tr>
-                `;
-            });
-
-            cartTotalSpan.textContent = formatGuaranies(total);
-        }
-
-        // Remover item del carrito
-        function removeFromCart(index) {
-            const item = cart[index];
-            if (confirm(`¿Eliminar ${item.productName} del carrito?`)) {
-                cart.splice(index, 1);
-                updateCartView();
-            }
-        }
-
-        // Vaciar carrito
-        function clearCart() {
-            if (cart.length === 0) return;
-
-            if (confirm('¿Estás seguro de vaciar el carrito?')) {
-                cart = [];
-                updateCartView();
-            }
-        }
-
-        // Completar venta con múltiples productos
-        async function completeSale() {
-            const customerId = parseInt(document.getElementById('saleCustomer').value);
-
-            if (cart.length === 0) {
-                alert('⚠️ El carrito está vacío. Agrega productos antes de completar la venta.');
-                return;
-            }
-
-            if (!customerId) {
-                alert('⚠️ Por favor selecciona un cliente');
-                return;
-            }
-
-            const client = clients.find(c => c.id == customerId);
-
-            try {
-                // Registrar cada producto del carrito como una venta individual
-                for (const item of cart) {
-                    const saleData = {
-                        productId: item.productId,
-                        productName: item.productName,
-                        productBrand: item.productBrand,
-                        category: item.category,
-                        quantity: item.quantity,
-                        unit: item.unit,
-                        price: item.price,
-                        total: item.subtotal,
-                        customerId: client.id,
-                        customer: client.name,
-                        customerDoc: `${client.docType}: ${formatNumberWithDots(client.docNumber)}`
-                    };
-
-                    // Guardar venta
-                    await saveSaleToDB(saleData);
-
-                    // Actualizar stock del producto
-                    const newStock = item.stock - item.quantity;
-                    await updateProductInDB(item.productId, { stock: newStock });
-                }
-
-                const totalVenta = cart.reduce((sum, item) => sum + item.subtotal, 0);
-                alert(`✅ Venta completada exitosamente!\n\nTotal: ${formatGuaranies(totalVenta)}\nProductos: ${cart.length}\nCliente: ${client.name}`);
-
-                // Limpiar carrito y formulario
-                cart = [];
-                updateCartView();
-                document.getElementById('saleCustomer').value = '';
-
-                // Recargar datos
-                await loadProducts();
-                await loadSales();
-                await loadSalesForm();
-                await updateDashboard();
-            } catch (error) {
-                alert('Error al completar la venta: ' + error.message);
-            }
-        }
-
-        // Registrar venta (mantener para compatibilidad, pero ya no se usa)
+        // Registrar venta
         async function registerSale() {
             const productId = parseInt(document.getElementById('saleProduct').value);
             const quantity = parseFloat(document.getElementById('saleQuantity').value);
@@ -2194,13 +1331,11 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
 
                 // Limpiar formulario
                 document.getElementById('saleProduct').value = '';
-                document.getElementById('selectedProductText').textContent = '-- Seleccionar Producto --';
                 document.getElementById('saleQuantity').value = 1;
                 document.getElementById('salePrice').value = '';
                 document.getElementById('saleTotal').value = '';
                 document.getElementById('saleCustomer').value = '';
                 document.getElementById('saleUnitLabel').textContent = '';
-                document.getElementById('saleProductImagePreview').style.display = 'none';
 
                 await loadProducts();
                 await loadSalesForm();
@@ -2232,19 +1367,10 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
 
             recentSales.forEach(sale => {
                 const date = new Date(sale.created_at);
-                const formattedDate = date.toLocaleString('es-PY', {
-                    timeZone: 'America/Asuncion',
-                    year: 'numeric',
-                    month: '2-digit',
-                    day: '2-digit',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    second: '2-digit'
-                });
                 const brandCell = sale.productBrand ? `<td>${sale.productBrand}</td>` : '<td><em style="color: #999;">Sin marca</em></td>';
                 tbody.innerHTML += `
                     <tr>
-                        <td>${formattedDate}</td>
+                        <td>${date.toLocaleString('es-PY')}</td>
                         <td>${sale.productName}</td>
                         ${brandCell}
                         <td>${formatUnit(sale.quantity, sale.unit)}</td>
@@ -2275,20 +1401,10 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
             document.getElementById('totalValue').textContent = formatGuaranies(totalValue);
 
             // Ventas de hoy
-            const today = new Date();
-            today.setHours(0, 0, 0, 0); // Inicio del día
-            const tomorrow = new Date(today);
-            tomorrow.setDate(tomorrow.getDate() + 1); // Inicio del día siguiente
-
-            const todaySales = sales.filter(s => {
-                const saleDate = new Date(s.created_at || s.date);
-                return saleDate >= today && saleDate < tomorrow;
-            });
+            const today = new Date().toDateString();
+            const todaySales = sales.filter(s => new Date(s.created_at).toDateString() === today);
             const todayTotal = todaySales.reduce((sum, s) => sum + s.total, 0);
             document.getElementById('todaySales').textContent = formatGuaranies(todayTotal);
-
-            // Debug: mostrar en consola
-            console.log('Ventas de hoy:', todaySales.length, 'Total:', todayTotal);
 
             // Stock bajo
             const lowStock = products.filter(p => p.stock <= p.minStock);
@@ -2495,9 +1611,7 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
                     document.getElementById('clientModalTitle').textContent = 'Editar Cliente';
                     document.getElementById('clientCode').value = client.code;
                     document.getElementById('clientDocType').value = client.docType;
-                    const docInput = document.getElementById('clientDocNumber');
-                    docInput.value = formatNumberWithDots(client.docNumber);
-                    docInput.dataset.rawValue = client.docNumber;
+                    document.getElementById('clientDocNumber').value = client.docNumber;
                     document.getElementById('clientName').value = client.name;
                     document.getElementById('clientPhone').value = client.phone;
                     document.getElementById('clientEmail').value = client.email || '';
@@ -2523,11 +1637,10 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
         async function saveClient(event) {
             event.preventDefault();
 
-            const docInput = document.getElementById('clientDocNumber');
             const clientData = {
                 code: document.getElementById('clientCode').value,
                 docType: document.getElementById('clientDocType').value,
-                docNumber: docInput.dataset.rawValue || docInput.value.replace(/./g, ''),
+                docNumber: document.getElementById('clientDocNumber').value,
                 name: document.getElementById('clientName').value,
                 phone: document.getElementById('clientPhone').value,
                 email: document.getElementById('clientEmail').value,
@@ -2579,7 +1692,7 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
                         <tr>
                             <td><strong>${client.code}</strong></td>
                             <td>${client.name}</td>
-                            <td>${client.docType}: ${formatNumberWithDots(client.docNumber)}</td>
+                            <td>${client.docType}: ${client.docNumber}</td>
                             <td>${client.phone}</td>
                             <td>${client.email || '-'}</td>
                             <td>${client.city}</td>
@@ -2620,30 +1733,104 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
             }
         }
     </script>
+ // ========== FUNCIONES DE FOTOS ==========
 
-    <!-- MODAL DE CATEGORÍAS -->
-    <div id="categoryModal" class="modal">
-        <div class="modal-content" style="max-width: 500px;">
-            <div class="modal-header">
-                <h2>⚙️ Gestionar Categorías</h2>
-                <span class="close-btn" onclick="closeCategoryModal()">✖</span>
-            </div>
-            <div class="modal-body">
-                <div style="margin-bottom:20px;">
-                    <label>Nueva Categoría</label>
-                    <div style="display:flex;gap:10px;">
-                        <input type="text" id="newCategoryName" placeholder="Nombre de la categoría" style="flex:1;" oninput="capitalizeFirst(this)">
-                        <button class="btn btn-primary" onclick="addCategory()">➕ Agregar</button>
-                    </div>
-                </div>
-                
-                <div>
-                    <h3 style="margin-bottom:10px;">Categorías actuales:</h3>
-                    <div id="categoriesList" style="max-height:300px;overflow-y:auto;"></div>
-                </div>
-            </div>
-        </div>
-    </div>
+  function handleImageSelect(event) {
+      const file = event.target.files[0];
+      if (!file) return;
 
-    </body>
+      if (file.size > 5 * 1024 * 1024) {
+          alert('❌ La imagen es muy grande. Máximo 5MB.');
+          return;
+      }
+
+      if (!file.type.match('image/(jpeg|jpg|png|webp)')) {
+          alert('❌ Formato no válido. Usa JPG, PNG o WEBP.');
+          return;
+      }
+
+      selectedImageFile = file;
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+          document.getElementById('previewImg').src = e.target.result;
+          document.getElementById('imagePreview').style.display = 'block';
+      };
+      reader.readAsDataURL(file);
+  }
+
+  async function takePhoto() {
+      try {
+          const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+
+          const modal = document.createElement('div');
+          modal.innerHTML = `
+              <div style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:10000;display:flex;align-items:center;justify-content:center;">
+                  <div style="background:white;padding:20px;border-radius:10px;">
+                      <video id="cameraVideo" autoplay style="max-width:500px;"></video>
+                      <div style="margin-top:10px;text-align:center;">
+                          <button class="btn btn-primary" onclick="capturePhoto()">📸 Capturar</button>
+                          <button class="btn btn-secondary" onclick="closeCamera()">❌ Cancelar</button>
+                      </div>
+                  </div>
+              </div>
+          `;
+          document.body.appendChild(modal);
+
+          const video = document.getElementById('cameraVideo');
+          video.srcObject = stream;
+
+          window.currentStream = stream;
+          window.cameraModal = modal;
+      } catch (error) {
+          alert('❌ No se pudo acceder a la cámara: ' + error.message);
+      }
+  }
+
+  function capturePhoto() {
+      const video = document.getElementById('cameraVideo');
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      canvas.getContext('2d').drawImage(video, 0, 0);
+
+      canvas.toBlob((blob) => {
+          selectedImageFile = new File([blob], 'photo.jpg', { type: 'image/jpeg' });
+
+          document.getElementById('previewImg').src = canvas.toDataURL();
+          document.getElementById('imagePreview').style.display = 'block';
+
+          closeCamera();
+      }, 'image/jpeg');
+  }
+
+  function closeCamera() {
+      if (window.currentStream) {
+          window.currentStream.getTracks().forEach(track => track.stop());
+      }
+      if (window.cameraModal) {
+          window.cameraModal.remove();
+      }
+  }
+
+  function clearImage() {
+      selectedImageFile = null;
+      document.getElementById('productImage').value = '';
+      document.getElementById('imagePreview').style.display = 'none';
+  }
+
+  function showImageModal(imageUrl) {
+      const modal = document.createElement('div');
+      modal.innerHTML = `
+          <div style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);z-index:10000;display:flex;align-items:center;justify-content:center;"
+  onclick="this.parentElement.remove()">
+              <div style="text-align:center;">
+                  <img src="${imageUrl}" style="max-width:90vw;max-height:90vh;border-radius:10px;">
+                  <p style="color:white;margin-top:10px;font-size:14px;">Click para cerrar</p>
+              </div>
+          </div>
+      `;
+      document.body.appendChild(modal);
+  }
+</body>
 </html>
