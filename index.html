@@ -546,31 +546,10 @@
                 width: 100%;
             }
 
-            /* Botones de acción en tabla de productos: mantener compactos */
-            #productsTableBody .action-btns {
-                display: flex;
-                flex-direction: row;
-                gap: 4px;
-                flex-wrap: wrap;
-            }
-
-            #productsTableBody .action-btn {
-                width: auto !important;
-                padding: 8px 10px;
-                font-size: 11px;
-                min-width: auto;
-                min-height: auto;
-            }
-
             /* Otros botones de acción: ancho completo */
             .action-btns .action-btn {
                 width: 100%;
                 justify-content: center;
-            }
-
-            /* Excluir tabla de productos del comportamiento anterior */
-            #productsTableBody .action-btns .action-btn {
-                width: auto !important;
             }
 
             /* TODOS los contenedores flex con botones */
@@ -594,40 +573,101 @@
                 flex: 1 1 100% !important;
             }
 
-            /* Tablas responsivas */
+            /* Tablas responsivas - Vista de tarjetas en móvil */
             .table-container {
-                overflow-x: auto;
-                -webkit-overflow-scrolling: touch;
+                overflow-x: visible;
                 width: 100%;
             }
 
+            /* Ocultar tabla tradicional en móvil */
             table {
-                font-size: 11px;
-                min-width: 600px;
+                display: none;
             }
 
-            table th, table td {
-                padding: 8px 4px;
-                white-space: nowrap;
+            /* Mostrar productos como tarjetas en móvil */
+            #productsTableBody {
+                display: block !important;
             }
 
-            /* Reordenar columnas de productos en móvil */
-            #productsTableBody tr,
-            table thead tr {
+            #productsTableBody tr {
+                display: block;
+                background: white;
+                border-radius: 10px;
+                padding: 15px;
+                margin-bottom: 15px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                position: relative;
+            }
+
+            #productsTableBody td {
+                display: block;
+                padding: 8px 0;
+                border: none;
+                text-align: left;
+                white-space: normal;
+            }
+
+            /* Ocultar columnas que no necesitamos en móvil */
+            #productsTableBody .col-brand,
+            #productsTableBody .col-image {
+                display: none;
+            }
+
+            /* Código y Nombre destacados */
+            #productsTableBody .col-code {
+                font-size: 12px;
+                color: #667eea;
+                font-weight: 700;
+                margin-bottom: 5px;
+            }
+
+            #productsTableBody .col-name {
+                font-size: 16px;
+                font-weight: 600;
+                color: #212529;
+                margin-bottom: 10px;
+            }
+
+            /* Agregar etiquetas antes de cada dato */
+            #productsTableBody .col-category:before {
+                content: "📂 ";
+                font-weight: 600;
+                color: #6c757d;
+            }
+
+            #productsTableBody .col-stock:before {
+                content: "📦 Stock: ";
+                font-weight: 600;
+                color: #6c757d;
+            }
+
+            #productsTableBody .col-price:before {
+                content: "💵 Precio: ";
+                font-weight: 600;
+                color: #6c757d;
+            }
+
+            #productsTableBody .col-status {
+                margin: 10px 0;
+            }
+
+            /* Botones de acción en tarjeta */
+            #productsTableBody .col-actions {
                 display: flex;
-                flex-wrap: nowrap;
+                gap: 8px;
+                margin-top: 15px;
+                padding-top: 15px;
+                border-top: 1px solid #eee;
             }
 
-            /* Orden en móvil: Código -> Acciones -> resto */
-            .col-code { order: 1; }
-            .col-actions { order: 2; }
-            .col-name { order: 3; }
-            .col-brand { order: 4; }
-            .col-category { order: 5; }
-            .col-stock { order: 6; }
-            .col-price { order: 7; }
-            .col-image { order: 8; }
-            .col-status { order: 9; }
+            #productsTableBody .action-btn {
+                flex: 1;
+                width: auto !important;
+                padding: 10px 8px;
+                font-size: 12px;
+                text-align: center;
+                min-height: 40px;
+            }
 
             /* Cards más compactas */
             .stat-card {
