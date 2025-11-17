@@ -579,9 +579,17 @@
                 width: 100%;
             }
 
-            /* Ocultar tabla tradicional en móvil */
-            table {
+            /* Ocultar cabecera de tabla en móvil */
+            table thead {
                 display: none;
+            }
+
+            /* Tabla sin bordes ni estilos en móvil */
+            table {
+                display: block;
+                background: transparent;
+                border: none;
+                box-shadow: none;
             }
 
             /* Mostrar productos como tarjetas en móvil */
@@ -607,10 +615,26 @@
                 white-space: normal;
             }
 
-            /* Ocultar columnas que no necesitamos en móvil */
-            #productsTableBody .col-brand,
-            #productsTableBody .col-image {
+            /* Ocultar columna de marca en móvil */
+            #productsTableBody .col-brand {
                 display: none;
+            }
+
+            /* Imagen en tarjeta móvil */
+            #productsTableBody .col-image {
+                position: absolute;
+                top: 15px;
+                right: 15px;
+                padding: 0;
+                margin: 0;
+            }
+
+            #productsTableBody .col-image img {
+                width: 60px !important;
+                height: 60px !important;
+                object-fit: cover;
+                border-radius: 8px !important;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.15) !important;
             }
 
             /* Código y Nombre destacados */
@@ -619,6 +643,7 @@
                 color: #667eea;
                 font-weight: 700;
                 margin-bottom: 5px;
+                padding-right: 70px; /* Espacio para la imagen */
             }
 
             #productsTableBody .col-name {
@@ -626,6 +651,7 @@
                 font-weight: 600;
                 color: #212529;
                 margin-bottom: 10px;
+                padding-right: 70px; /* Espacio para la imagen */
             }
 
             /* Agregar etiquetas antes de cada dato */
