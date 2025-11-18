@@ -2074,6 +2074,43 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
             window.currentStream = stream;
             window.cameraModal = modal;
 
+            // Agregar Pinch-to-Zoom con gestos táctiles
+            let initialPinchDistance = 0;
+            let initialZoomValue = 1;
+
+            video.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 2) {
+                    e.preventDefault();
+                    const touch1 = e.touches[0];
+                    const touch2 = e.touches[1];
+                    initialPinchDistance = Math.hypot(
+                        touch2.clientX - touch1.clientX,
+                        touch2.clientY - touch1.clientY
+                    );
+                    const zoomSlider = document.getElementById('zoomSlider');
+                    initialZoomValue = parseFloat(zoomSlider.value);
+                }
+            }, { passive: false });
+
+            video.addEventListener('touchmove', (e) => {
+                if (e.touches.length === 2) {
+                    e.preventDefault();
+                    const touch1 = e.touches[0];
+                    const touch2 = e.touches[1];
+                    const currentDistance = Math.hypot(
+                        touch2.clientX - touch1.clientX,
+                        touch2.clientY - touch1.clientY
+                    );
+
+                    const scale = currentDistance / initialPinchDistance;
+                    const newZoom = Math.max(1, Math.min(3, initialZoomValue * scale));
+
+                    const zoomSlider = document.getElementById('zoomSlider');
+                    zoomSlider.value = newZoom;
+                    adjustZoom(newZoom);
+                }
+            }, { passive: false });
+
             // Agregar atajo de teclado para capturar (Espacio)
             window.cameraKeyHandler = (e) => {
                 if (e.code === 'Space' && window.cameraModal) {
