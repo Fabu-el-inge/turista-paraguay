@@ -695,6 +695,88 @@
                 min-height: 40px;
             }
 
+            /* Mostrar clientes como tarjetas en móvil */
+            #clientsTableBody {
+                display: block !important;
+            }
+
+            #clientsTableBody tr {
+                display: block;
+                background: white;
+                border-radius: 10px;
+                padding: 15px;
+                margin-bottom: 15px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                position: relative;
+            }
+
+            #clientsTableBody td {
+                display: block;
+                padding: 8px 0;
+                border: none;
+                text-align: left;
+                white-space: normal;
+            }
+
+            /* Código destacado */
+            #clientsTableBody .col-client-code {
+                font-size: 12px;
+                color: #667eea;
+                font-weight: 700;
+                margin-bottom: 5px;
+            }
+
+            /* Nombre destacado */
+            #clientsTableBody .col-client-name {
+                font-size: 16px;
+                font-weight: 600;
+                color: #212529;
+                margin-bottom: 10px;
+            }
+
+            /* Agregar etiquetas antes de cada dato */
+            #clientsTableBody .col-client-doc:before {
+                content: "🆔 ";
+                font-weight: 600;
+                color: #6c757d;
+            }
+
+            #clientsTableBody .col-client-phone:before {
+                content: "📱 ";
+                font-weight: 600;
+                color: #6c757d;
+            }
+
+            #clientsTableBody .col-client-email:before {
+                content: "✉️ ";
+                font-weight: 600;
+                color: #6c757d;
+            }
+
+            #clientsTableBody .col-client-city:before {
+                content: "📍 ";
+                font-weight: 600;
+                color: #6c757d;
+            }
+
+            /* Botones de acción en tarjeta */
+            #clientsTableBody .col-client-actions {
+                display: flex;
+                gap: 8px;
+                margin-top: 15px;
+                padding-top: 15px;
+                border-top: 1px solid #eee;
+            }
+
+            #clientsTableBody .action-btn {
+                flex: 1;
+                width: auto !important;
+                padding: 10px 8px;
+                font-size: 12px;
+                text-align: center;
+                min-height: 40px;
+            }
+
             /* Cards más compactas */
             .stat-card {
                 padding: 15px;
@@ -3269,13 +3351,13 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
                 clients.forEach(client => {
                     tbody.innerHTML += `
                         <tr>
-                            <td><strong>${client.code}</strong></td>
-                            <td>${client.name}</td>
-                            <td>${client.docType}: ${formatNumberWithDots(client.docNumber)}</td>
-                            <td>${client.phone}</td>
-                            <td>${client.email || '-'}</td>
-                            <td>${client.city}</td>
-                            <td class="action-btns">
+                            <td class="col-client-code"><strong>${client.code}</strong></td>
+                            <td class="col-client-name">${client.name}</td>
+                            <td class="col-client-doc">${client.docType}: ${formatNumberWithDots(client.docNumber)}</td>
+                            <td class="col-client-phone">${client.phone}</td>
+                            <td class="col-client-email">${client.email || '-'}</td>
+                            <td class="col-client-city">${client.city}</td>
+                            <td class="col-client-actions">
                                 <button class="action-btn btn-warning" onclick="openClientModal(${client.id})">✏️ Editar</button>
                                 <button class="action-btn btn-danger" onclick="deleteClient(${client.id})">🗑️ Eliminar</button>
                             </td>
