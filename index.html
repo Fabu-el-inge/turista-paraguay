@@ -777,6 +777,79 @@
                 min-height: 40px;
             }
 
+            /* Mostrar historial de ventas como tarjetas en móvil */
+            #salesHistoryBody {
+                display: block !important;
+            }
+
+            #salesHistoryBody tr {
+                display: block;
+                background: white;
+                border-radius: 10px;
+                padding: 15px;
+                margin-bottom: 15px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                position: relative;
+            }
+
+            #salesHistoryBody td {
+                display: block;
+                padding: 8px 0;
+                border: none;
+                text-align: left;
+                white-space: normal;
+            }
+
+            /* Ocultar marca en móvil para ahorrar espacio */
+            #salesHistoryBody .col-sale-brand {
+                display: none;
+            }
+
+            /* Fecha destacada */
+            #salesHistoryBody .col-sale-date {
+                font-size: 11px;
+                color: #667eea;
+                font-weight: 600;
+                margin-bottom: 5px;
+            }
+
+            /* Producto destacado */
+            #salesHistoryBody .col-sale-product {
+                font-size: 16px;
+                font-weight: 600;
+                color: #212529;
+                margin-bottom: 10px;
+            }
+
+            /* Total destacado con badge */
+            #salesHistoryBody .col-sale-total {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                padding: 8px 12px !important;
+                border-radius: 8px;
+                font-size: 18px;
+                font-weight: 700;
+                text-align: center;
+                margin: 10px 0;
+            }
+
+            #salesHistoryBody .col-sale-total strong {
+                color: white;
+            }
+
+            /* Agregar etiquetas antes de cada dato */
+            #salesHistoryBody .col-sale-quantity:before {
+                content: "📦 Cantidad: ";
+                font-weight: 600;
+                color: #6c757d;
+            }
+
+            #salesHistoryBody .col-sale-customer:before {
+                content: "👤 Cliente: ";
+                font-weight: 600;
+                color: #6c757d;
+            }
+
             /* Cards más compactas */
             .stat-card {
                 padding: 15px;
@@ -2903,15 +2976,15 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
                     minute: '2-digit',
                     second: '2-digit'
                 });
-                const brandCell = sale.productBrand ? `<td>${sale.productBrand}</td>` : '<td><em style="color: #999;">Sin marca</em></td>';
+                const brandCell = sale.productBrand ? `<td class="col-sale-brand">${sale.productBrand}</td>` : '<td class="col-sale-brand"><em style="color: #999;">Sin marca</em></td>';
                 tbody.innerHTML += `
                     <tr>
-                        <td>${formattedDate}</td>
-                        <td>${sale.productName}</td>
+                        <td class="col-sale-date">${formattedDate}</td>
+                        <td class="col-sale-product">${sale.productName}</td>
                         ${brandCell}
-                        <td>${formatUnit(sale.quantity, sale.unit)}</td>
-                        <td><strong>${formatGuaranies(sale.total)}</strong></td>
-                        <td>${sale.customer}</td>
+                        <td class="col-sale-quantity">${formatUnit(sale.quantity, sale.unit)}</td>
+                        <td class="col-sale-total"><strong>${formatGuaranies(sale.total)}</strong></td>
+                        <td class="col-sale-customer">${sale.customer}</td>
                     </tr>
                 `;
             });
