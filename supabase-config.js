@@ -85,6 +85,7 @@ async function loadProductsFromDB() {
         return data.map(p => ({
             id: p.id,
             code: p.code,
+            type: p.type || 'producto',
             name: p.name,
             brand: p.brand || '',
             category: p.category,
@@ -107,6 +108,7 @@ async function saveProductToDB(product) {
     try {
         const dbProduct = {
             code: product.code,
+            type: product.type || 'producto',
             name: product.name,
             brand: product.brand || null,
             category: product.category,
@@ -154,6 +156,7 @@ async function updateProductInDB(id, product) {
         console.log('Actualizando producto completo', id, 'con', Object.keys(product).length, 'campos');
         const dbProduct = {
             code: product.code,
+            type: product.type || 'producto',
             name: product.name,
             brand: product.brand || null,
             category: product.category,
@@ -510,5 +513,75 @@ async function deleteCategoryFromDB(categoryName) {
     } catch (error) {
         console.error('Error al eliminar categoría:', error);
         throw error;
+    }
+}
+
+// ============================================
+// FUNCIONES DE TRANSFORMACIONES/PRODUCCIÓN
+// ============================================
+
+async function saveTransformationToDB(transformation) {
+    try {
+        const dbTransformation = {
+            source_id: transformation.sourceId,
+            source_name: transformation.sourceName,
+            source_code: transformation.sourceCode,
+            source_stock_before: transformation.sourceStockBefore,
+            source_stock_after: transformation.sourceStockAfter,
+            target_id: transformation.targetId,
+            target_name: transformation.targetName,
+            target_code: transformation.targetCode,
+            target_stock_before: transformation.targetStockBefore,
+            target_stock_after: transformation.targetStockAfter,
+            quantity: transformation.quantity,
+            unit: transformation.unit,
+            notes: transformation.notes || null,
+            date: transformation.date
+        };
+
+        const { data, error } = await supabase
+            .from('transformations')
+            .insert([dbTransformation])
+            .select();
+
+        if (error) throw error;
+
+        return data[0];
+    } catch (error) {
+        console.error('Error al guardar transformación:', error);
+        alert('❌ Error al guardar transformación: ' + error.message);
+        return null;
+    }
+}
+
+async function loadTransformationsFromDB() {
+    try {
+        const { data, error } = await supabase
+            .from('transformations')
+            .select('*')
+            .order('date', { ascending: false });
+
+        if (error) throw error;
+
+        return data.map(t => ({
+            id: t.id,
+            sourceId: t.source_id,
+            sourceName: t.source_name,
+            sourceCode: t.source_code,
+            sourceStockBefore: t.source_stock_before,
+            sourceStockAfter: t.source_stock_after,
+            targetId: t.target_id,
+            targetName: t.target_name,
+            targetCode: t.target_code,
+            targetStockBefore: t.target_stock_before,
+            targetStockAfter: t.target_stock_after,
+            quantity: t.quantity,
+            unit: t.unit,
+            notes: t.notes || '',
+            date: t.date
+        }));
+    } catch (error) {
+        console.error('Error al cargar transformaciones:', error);
+        return [];
     }
 }

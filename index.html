@@ -1150,6 +1150,7 @@
             <div class="nav">
                 <button class="nav-btn active" onclick="showSection('dashboard')">🏠 Menú Principal</button>
                 <button class="nav-btn" onclick="showSection('products')">📦 Productos</button>
+                <button class="nav-btn" onclick="showSection('production')">🔄 Producción</button>
                 <button class="nav-btn" onclick="showSection('clients')">👥 Clientes</button>
                 <button class="nav-btn" onclick="showSection('sales')">💰 Ventas</button>
                 <button class="nav-btn" onclick="showSection('reports')">📈 Reportes</button>
@@ -1277,6 +1278,103 @@
                             </tr>
                         </thead>
                         <tbody id="clientsTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- PRODUCCIÓN / TRANSFORMACIÓN -->
+            <div id="production" class="section">
+                <h2 style="margin-bottom: 20px;">🔄 Producción / Transformación</h2>
+
+                <div class="info-box" style="margin-bottom: 30px;">
+                    <div class="info-box-title">💡 Sistema de Transformación</div>
+                    <div>Convierte insumos en productos finales. Por ejemplo: Taza blanca → Taza con diseño</div>
+                </div>
+
+                <!-- Formulario de Transformación -->
+                <div style="background: #f9f9f9; padding: 25px; border-radius: 10px; margin-bottom: 30px;">
+                    <h3 style="margin-bottom: 20px;">➕ Nueva Transformación</h3>
+
+                    <form id="transformationForm" onsubmit="executeTransformation(event)">
+                        <div class="form-row">
+                            <!-- Buscador de Insumo Origen -->
+                            <div class="form-group" style="position: relative;">
+                                <label>📦 Buscar Insumo Origen *</label>
+                                <input type="text" id="sourceProductSearch" placeholder="Buscar por código o nombre..." autocomplete="off" oninput="searchSourceProducts()" onfocus="searchSourceProducts()" required>
+                                <div id="sourceProductsDropdown" style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: white; border: 2px solid #667eea; border-top: none; border-radius: 0 0 8px 8px; max-height: 300px; overflow-y: auto; z-index: 1000; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"></div>
+                                <input type="hidden" id="sourceProduct" required>
+                                <div id="sourceStockInfo" style="margin-top: 8px; font-size: 13px; color: #666;"></div>
+                            </div>
+
+                            <!-- Buscador de Producto Destino -->
+                            <div class="form-group" style="position: relative;">
+                                <label>🛍️ Buscar Producto Destino *</label>
+                                <input type="text" id="targetProductSearch" placeholder="Buscar por código o nombre..." autocomplete="off" oninput="searchTargetProducts()" onfocus="searchTargetProducts()" required>
+                                <div id="targetProductsDropdown" style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: white; border: 2px solid #28a745; border-top: none; border-radius: 0 0 8px 8px; max-height: 300px; overflow-y: auto; z-index: 1000; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"></div>
+                                <input type="hidden" id="targetProduct" required>
+                                <div id="targetStockInfo" style="margin-top: 8px; font-size: 13px; color: #666;"></div>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Cantidad a Transformar *</label>
+                                <input type="number" id="transformQuantity" required min="1" step="1" placeholder="Cantidad" oninput="calculateTransformation()">
+                            </div>
+                            <div class="form-group">
+                                <label>Notas (Opcional)</label>
+                                <input type="text" id="transformNotes" placeholder="Ej: Lote 123, Diseño especial...">
+                            </div>
+                        </div>
+
+                        <div id="transformationPreview" style="display: none; background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #667eea;">
+                            <h4 style="margin-top: 0; color: #667eea;">📋 Vista Previa de la Transformación</h4>
+                            <div style="display: grid; grid-template-columns: 1fr auto 1fr; gap: 20px; align-items: center;">
+                                <div style="text-align: center; padding: 15px; background: #fff3cd; border-radius: 8px;">
+                                    <div style="font-size: 12px; color: #856404; margin-bottom: 5px;">INSUMO</div>
+                                    <div id="previewSourceName" style="font-weight: bold; margin-bottom: 5px;"></div>
+                                    <div id="previewSourceStock" style="font-size: 14px; color: #666;"></div>
+                                </div>
+                                <div style="font-size: 24px; color: #667eea;">→</div>
+                                <div style="text-align: center; padding: 15px; background: #d4edda; border-radius: 8px;">
+                                    <div style="font-size: 12px; color: #155724; margin-bottom: 5px;">PRODUCTO</div>
+                                    <div id="previewTargetName" style="font-weight: bold; margin-bottom: 5px;"></div>
+                                    <div id="previewTargetStock" style="font-size: 14px; color: #666;"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 10px;">
+                            <button type="submit" class="btn btn-success" style="flex: 1;">✅ Ejecutar Transformación</button>
+                            <button type="button" class="btn" style="background: #6c757d; color: white;" onclick="resetTransformationForm()">🔄 Limpiar</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Historial de Transformaciones -->
+                <h3 style="margin-bottom: 15px;">📜 Historial de Transformaciones</h3>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Insumo Origen</th>
+                                <th>Stock Antes/Después</th>
+                                <th>→</th>
+                                <th>Producto Destino</th>
+                                <th>Stock Antes/Después</th>
+                                <th>Cantidad</th>
+                                <th>Notas</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transformationsTableBody">
+                            <tr>
+                                <td colspan="8" style="text-align: center; padding: 40px; color: #999;">
+                                    <div style="font-size: 48px; margin-bottom: 10px;">🔄</div>
+                                    <div>No hay transformaciones registradas aún</div>
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -1485,11 +1583,19 @@
                         <input type="text" id="productCode" required placeholder="Ej: TP-001" readonly style="background-color: #f0f0f0; cursor: not-allowed;">
                     </div>
                     <div class="form-group">
-                        <label>Categoría *</label>
-                        <select id="productCategory" required>
+                        <label>Tipo de Producto *</label>
+                        <select id="productType" required onchange="updatePriceRequirement()">
+                            <option value="producto">Producto Final</option>
+                            <option value="insumo">Insumo</option>
                         </select>
-                        <button type="button" class="btn btn-secondary" onclick="openCategoryModal()" style="margin-top:10px;width:100%;">⚙️ Gestionar Categorías</button>
                     </div>
+                </div>
+
+                <div class="form-group" style="max-width: 50%; margin: 0 auto;">
+                    <label>Categoría *</label>
+                    <select id="productCategory" required>
+                    </select>
+                    <button type="button" class="btn btn-secondary" onclick="openCategoryModal()" style="margin-top:10px;width:100%;">⚙️ Gestionar Categorías</button>
                 </div>
 
                 <div class="form-row">
@@ -1498,8 +1604,8 @@
                         <input type="text" id="productName" required placeholder="Ej: Remera Paraguay" oninput="capitalizeFirst(this)">
                     </div>
                     <div class="form-group">
-                        <label>Marca</label>
-                        <input type="text" id="productBrand" placeholder="Ej: Nike, Adidas (opcional)" oninput="capitalizeFirst(this)">
+                        <label>Marca o Sucursal</label>
+                        <input type="text" id="productBrand" placeholder="Ej: Nike, Adidas, Sucursal Centro (opcional)" oninput="capitalizeFirst(this)">
                     </div>
                 </div>
 
@@ -1536,7 +1642,7 @@
                         <input type="text" id="productCost" placeholder="Ej: 50.000" oninput="formatPriceInput(this)">
                     </div>
                     <div class="form-group">
-                        <label>Precio de Venta (₲) *</label>
+                        <label id="productPriceLabel">Precio de Venta (₲) *</label>
                         <input type="text" id="productPrice" required placeholder="Ej: 100.000" oninput="formatPriceInput(this)">
                     </div>
                 </div>
@@ -1659,6 +1765,7 @@
         let sales = [];
         let clients = [];
         let cart = []; // Carrito de compras temporal
+        let transformations = []; // Historial de transformaciones
 
         // Función para mostrar notificaciones toast
         function showToast(message, duration = 2000) {
@@ -1824,6 +1931,7 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
             await loadProducts();
             await loadSales();
             await loadClients();
+            await loadTransformations();
             await updateDashboard();
             await updateReports();
         });
@@ -1838,6 +1946,7 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
 
             if (sectionName === 'dashboard') await updateDashboard();
             if (sectionName === 'products') await loadProducts();
+            if (sectionName === 'production') await loadProductionForm();
             if (sectionName === 'clients') await loadClients();
             if (sectionName === 'sales') await loadSalesForm();
             if (sectionName === 'reports') await updateReports();
@@ -1870,6 +1979,8 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
                     document.getElementById('modalTitle').textContent = 'Editar Producto';
                     document.getElementById('productId').value = product.id;
                     document.getElementById('productCode').value = product.code;
+                    document.getElementById('productType').value = product.type || 'producto';
+                    updatePriceRequirement(); // Actualizar requerimiento del precio
                     document.getElementById('productName').value = product.name;
                     document.getElementById('productBrand').value = product.brand || '';
                     document.getElementById('productCategory').value = product.category;
@@ -1925,19 +2036,42 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
             clearImage();
         }
 
+        // Actualizar requerimiento del precio según el tipo de producto
+        function updatePriceRequirement() {
+            const productType = document.getElementById('productType').value;
+            const priceInput = document.getElementById('productPrice');
+            const priceLabel = document.getElementById('productPriceLabel');
+
+            if (productType === 'insumo') {
+                // Para insumos, el precio es opcional
+                priceInput.removeAttribute('required');
+                priceLabel.textContent = 'Precio de Venta (₲) - Opcional';
+                priceInput.placeholder = 'Ej: 100.000 (opcional si no se vende)';
+            } else {
+                // Para productos finales, el precio es obligatorio
+                priceInput.setAttribute('required', 'required');
+                priceLabel.textContent = 'Precio de Venta (₲) *';
+                priceInput.placeholder = 'Ej: 100.000';
+            }
+        }
+
         // Guardar producto
         async function saveProduct(event) {
             event.preventDefault();
 
+            const productType = document.getElementById('productType').value;
+            const priceValue = document.getElementById('productPrice').value;
+
             const productData = {
                 code: document.getElementById('productCode').value,
+                type: productType,
                 name: document.getElementById('productName').value,
                 brand: document.getElementById('productBrand').value || '',
                 category: document.getElementById('productCategory').value,
                 stock: parseFloat(document.getElementById('productStock').value),
                 unit: document.getElementById('productUnit').value,
                 cost: parseFormattedPrice(document.getElementById('productCost').value),
-                price: parseFormattedPrice(document.getElementById('productPrice').value),
+                price: priceValue ? parseFormattedPrice(priceValue) : 0,
                 minStock: parseFloat(document.getElementById('productMinStock').value) || 3,
                 description: document.getElementById('productDescription')?.value || ''
             };
@@ -3271,6 +3405,10 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
                 '<span class="badge badge-warning">⚡ Stock Medio</span>' :
                 '<span class="badge badge-success">✅ Stock OK</span>';
 
+            const productTypeLabel = product.type === 'insumo' ?
+                '<span class="badge badge-warning">📦 Insumo</span>' :
+                '<span class="badge badge-info">🛍️ Producto Final</span>';
+
             const content = `
                 <!-- Fila especial con Código, Imagen y Nombre -->
                 <div style="display: grid; grid-template-columns: 1fr auto 1fr; gap: 15px; margin-bottom: 20px;">
@@ -3289,6 +3427,12 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
                         <div class="product-detail-label">🏷️ Nombre</div>
                         <div class="product-detail-value">${product.name}</div>
                     </div>
+                </div>
+
+                <!-- Tipo de Producto -->
+                <div style="margin-bottom: 20px; text-align: center;">
+                    <div class="product-detail-label" style="margin-bottom: 8px;">Tipo de Producto</div>
+                    <div>${productTypeLabel}</div>
                 </div>
 
                 <div class="product-details-grid">
@@ -3473,6 +3617,401 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
                 alert('Error al eliminar cliente: ' + error.message);
             }
         }
+
+        // ==================== MÓDULO DE TRANSFORMACIÓN / PRODUCCIÓN ====================
+
+        // Cargar productos en los selectores de transformación (ya no se usa, pero lo dejamos por compatibilidad)
+        async function loadProductionForm() {
+            // Función vacía, los buscadores cargan dinámicamente
+        }
+
+        // Buscar insumos origen
+        function searchSourceProducts() {
+            const searchInput = document.getElementById('sourceProductSearch');
+            const dropdown = document.getElementById('sourceProductsDropdown');
+            const searchTerm = searchInput.value.toLowerCase();
+
+            // Filtrar solo insumos
+            const insumos = products.filter(p => p.type === 'insumo');
+
+            if (searchTerm.length === 0) {
+                // Mostrar todos los insumos
+                const filtered = insumos;
+                displaySourceDropdown(filtered);
+            } else {
+                // Filtrar por búsqueda
+                const filtered = insumos.filter(p =>
+                    p.code.toLowerCase().includes(searchTerm) ||
+                    p.name.toLowerCase().includes(searchTerm) ||
+                    (p.brand && p.brand.toLowerCase().includes(searchTerm))
+                );
+                displaySourceDropdown(filtered);
+            }
+        }
+
+        function displaySourceDropdown(filteredProducts) {
+            const dropdown = document.getElementById('sourceProductsDropdown');
+
+            if (filteredProducts.length === 0) {
+                dropdown.innerHTML = '<div style="padding: 20px; text-align: center; color: #999;">No se encontraron insumos</div>';
+                dropdown.style.display = 'block';
+                return;
+            }
+
+            dropdown.innerHTML = filteredProducts.map(product => {
+                const stockBadge = product.stock <= product.minStock ? 'badge-danger' :
+                                  product.stock <= product.minStock * 2 ? 'badge-warning' : 'badge-success';
+                return `
+                    <div onclick="selectSourceProduct(${product.id})" style="padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; display: flex; align-items: center; gap: 12px;"
+                         onmouseover="this.style.background='#f0f0f0'" onmouseout="this.style.background='white'">
+                        ${product.imageUrl ?
+                            `<img src="${product.imageUrl}" alt="${product.name}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 6px;">` :
+                            `<div style="width: 50px; height: 50px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 6px; display: flex; align-items: center; justify-content: center;">
+                                <span style="font-size: 24px;">📦</span>
+                            </div>`
+                        }
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; font-size: 14px;">${product.code} - ${product.name}</div>
+                            <div style="font-size: 12px; color: #666;">${product.brand || ''} ${product.brand ? '•' : ''} <span class="badge ${stockBadge}" style="font-size: 11px;">Stock: ${product.stock} ${product.unit}</span></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            dropdown.style.display = 'block';
+        }
+
+        function selectSourceProduct(productId) {
+            const product = products.find(p => p.id === productId);
+            if (!product) return;
+
+            document.getElementById('sourceProductSearch').value = `${product.code} - ${product.name}`;
+            document.getElementById('sourceProduct').value = productId;
+            document.getElementById('sourceProductsDropdown').style.display = 'none';
+
+            updateSourceStock();
+        }
+
+        // Buscar productos destino
+        function searchTargetProducts() {
+            const searchInput = document.getElementById('targetProductSearch');
+            const dropdown = document.getElementById('targetProductsDropdown');
+            const searchTerm = searchInput.value.toLowerCase();
+
+            // Filtrar solo productos finales
+            const productosFinales = products.filter(p => p.type === 'producto');
+
+            if (searchTerm.length === 0) {
+                // Mostrar todos los productos
+                const filtered = productosFinales;
+                displayTargetDropdown(filtered);
+            } else {
+                // Filtrar por búsqueda
+                const filtered = productosFinales.filter(p =>
+                    p.code.toLowerCase().includes(searchTerm) ||
+                    p.name.toLowerCase().includes(searchTerm) ||
+                    (p.brand && p.brand.toLowerCase().includes(searchTerm))
+                );
+                displayTargetDropdown(filtered);
+            }
+        }
+
+        function displayTargetDropdown(filteredProducts) {
+            const dropdown = document.getElementById('targetProductsDropdown');
+
+            if (filteredProducts.length === 0) {
+                dropdown.innerHTML = '<div style="padding: 20px; text-align: center; color: #999;">No se encontraron productos</div>';
+                dropdown.style.display = 'block';
+                return;
+            }
+
+            dropdown.innerHTML = filteredProducts.map(product => {
+                const stockBadge = product.stock <= product.minStock ? 'badge-danger' :
+                                  product.stock <= product.minStock * 2 ? 'badge-warning' : 'badge-success';
+                return `
+                    <div onclick="selectTargetProduct(${product.id})" style="padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; display: flex; align-items: center; gap: 12px;"
+                         onmouseover="this.style.background='#f0f0f0'" onmouseout="this.style.background='white'">
+                        ${product.imageUrl ?
+                            `<img src="${product.imageUrl}" alt="${product.name}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 6px;">` :
+                            `<div style="width: 50px; height: 50px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 6px; display: flex; align-items: center; justify-content: center;">
+                                <span style="font-size: 24px;">🛍️</span>
+                            </div>`
+                        }
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; font-size: 14px;">${product.code} - ${product.name}</div>
+                            <div style="font-size: 12px; color: #666;">${product.brand || ''} ${product.brand ? '•' : ''} <span class="badge ${stockBadge}" style="font-size: 11px;">Stock: ${product.stock} ${product.unit}</span></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            dropdown.style.display = 'block';
+        }
+
+        function selectTargetProduct(productId) {
+            const product = products.find(p => p.id === productId);
+            if (!product) return;
+
+            document.getElementById('targetProductSearch').value = `${product.code} - ${product.name}`;
+            document.getElementById('targetProduct').value = productId;
+            document.getElementById('targetProductsDropdown').style.display = 'none';
+
+            updateTargetStock();
+        }
+
+        // Cerrar dropdowns al hacer click fuera
+        document.addEventListener('click', function(event) {
+            if (!event.target.closest('#sourceProductSearch') && !event.target.closest('#sourceProductsDropdown')) {
+                document.getElementById('sourceProductsDropdown').style.display = 'none';
+            }
+            if (!event.target.closest('#targetProductSearch') && !event.target.closest('#targetProductsDropdown')) {
+                document.getElementById('targetProductsDropdown').style.display = 'none';
+            }
+        });
+
+        // Actualizar información de stock del producto origen
+        function updateSourceStock() {
+            const sourceId = document.getElementById('sourceProduct').value;
+            const infoDiv = document.getElementById('sourceStockInfo');
+
+            if (!sourceId) {
+                infoDiv.textContent = '';
+                return;
+            }
+
+            const product = products.find(p => p.id == sourceId);
+            if (product) {
+                infoDiv.innerHTML = `📦 <strong>Stock disponible:</strong> ${product.stock} ${product.unit}`;
+                infoDiv.style.color = product.stock > 0 ? '#28a745' : '#dc3545';
+            }
+
+            calculateTransformation();
+        }
+
+        // Actualizar información de stock del producto destino
+        function updateTargetStock() {
+            const targetId = document.getElementById('targetProduct').value;
+            const infoDiv = document.getElementById('targetStockInfo');
+
+            if (!targetId) {
+                infoDiv.textContent = '';
+                return;
+            }
+
+            const product = products.find(p => p.id == targetId);
+            if (product) {
+                infoDiv.innerHTML = `📦 <strong>Stock actual:</strong> ${product.stock} ${product.unit}`;
+                infoDiv.style.color = '#666';
+            }
+
+            calculateTransformation();
+        }
+
+        // Calcular y mostrar vista previa de la transformación
+        function calculateTransformation() {
+            const sourceId = document.getElementById('sourceProduct').value;
+            const targetId = document.getElementById('targetProduct').value;
+            const quantity = parseInt(document.getElementById('transformQuantity').value) || 0;
+
+            const previewDiv = document.getElementById('transformationPreview');
+
+            if (!sourceId || !targetId || quantity <= 0) {
+                previewDiv.style.display = 'none';
+                return;
+            }
+
+            const sourceProduct = products.find(p => p.id == sourceId);
+            const targetProduct = products.find(p => p.id == targetId);
+
+            if (!sourceProduct || !targetProduct) {
+                previewDiv.style.display = 'none';
+                return;
+            }
+
+            // Calcular stocks resultantes
+            const newSourceStock = sourceProduct.stock - quantity;
+            const newTargetStock = targetProduct.stock + quantity;
+
+            // Actualizar vista previa
+            document.getElementById('previewSourceName').textContent = sourceProduct.name;
+            document.getElementById('previewSourceStock').innerHTML = `
+                Stock actual: <strong>${sourceProduct.stock}</strong> ${sourceProduct.unit}<br>
+                Después: <strong style="color: ${newSourceStock < 0 ? '#dc3545' : '#856404'}">${newSourceStock}</strong> ${sourceProduct.unit}
+            `;
+
+            document.getElementById('previewTargetName').textContent = targetProduct.name;
+            document.getElementById('previewTargetStock').innerHTML = `
+                Stock actual: <strong>${targetProduct.stock}</strong> ${targetProduct.unit}<br>
+                Después: <strong style="color: #155724">${newTargetStock}</strong> ${targetProduct.unit}
+            `;
+
+            previewDiv.style.display = 'block';
+        }
+
+        // Ejecutar transformación
+        async function executeTransformation(event) {
+            event.preventDefault();
+
+            const sourceId = parseInt(document.getElementById('sourceProduct').value);
+            const targetId = parseInt(document.getElementById('targetProduct').value);
+            const quantity = parseInt(document.getElementById('transformQuantity').value);
+            const notes = document.getElementById('transformNotes').value;
+
+            // Buscar productos
+            const sourceProduct = products.find(p => p.id === sourceId);
+            const targetProduct = products.find(p => p.id === targetId);
+
+            if (!sourceProduct || !targetProduct) {
+                alert('❌ Error: Productos no encontrados');
+                return;
+            }
+
+            // Validar stock suficiente
+            if (sourceProduct.stock < quantity) {
+                alert(`❌ Stock insuficiente de "${sourceProduct.name}"\nDisponible: ${sourceProduct.stock} ${sourceProduct.unit}\nRequerido: ${quantity} ${sourceProduct.unit}`);
+                return;
+            }
+
+            // Validar que sean de tipos diferentes
+            if (sourceProduct.type === targetProduct.type) {
+                alert('⚠️ Advertencia: Estás transformando entre productos del mismo tipo.\n¿Estás seguro de continuar?');
+            }
+
+            // Confirmar transformación
+            if (!confirm(`¿Confirmar transformación?\n\n` +
+                `De: ${sourceProduct.name} (-${quantity} ${sourceProduct.unit})\n` +
+                `A: ${targetProduct.name} (+${quantity} ${targetProduct.unit})`)) {
+                return;
+            }
+
+            try {
+                // Guardar stocks anteriores
+                const sourceStockBefore = sourceProduct.stock;
+                const targetStockBefore = targetProduct.stock;
+
+                // Actualizar stocks
+                sourceProduct.stock -= quantity;
+                targetProduct.stock += quantity;
+
+                // Actualizar en la base de datos
+                await updateProductInDB(sourceId, { stock: sourceProduct.stock });
+                await updateProductInDB(targetId, { stock: targetProduct.stock });
+
+                // Registrar transformación con stocks antes y después
+                const transformation = {
+                    id: Date.now(),
+                    date: new Date().toISOString(),
+                    sourceId: sourceId,
+                    sourceName: sourceProduct.name,
+                    sourceCode: sourceProduct.code,
+                    sourceStockBefore: sourceStockBefore,
+                    sourceStockAfter: sourceProduct.stock,
+                    targetId: targetId,
+                    targetName: targetProduct.name,
+                    targetCode: targetProduct.code,
+                    targetStockBefore: targetStockBefore,
+                    targetStockAfter: targetProduct.stock,
+                    quantity: quantity,
+                    unit: sourceProduct.unit,
+                    notes: notes
+                };
+
+                // Guardar en Supabase
+                await saveTransformationToDB(transformation);
+                transformations.push(transformation);
+
+                // Actualizar vistas
+                await loadProducts();
+                await loadProductionForm();
+                loadTransformationsHistory();
+                resetTransformationForm();
+
+                showToast(`✅ Transformación exitosa: ${quantity} ${sourceProduct.unit}`);
+
+            } catch (error) {
+                console.error('Error en transformación:', error);
+                alert('❌ Error al ejecutar la transformación: ' + error.message);
+            }
+        }
+
+        // Limpiar formulario de transformación
+        function resetTransformationForm() {
+            document.getElementById('transformationForm').reset();
+            document.getElementById('sourceStockInfo').textContent = '';
+            document.getElementById('targetStockInfo').textContent = '';
+            document.getElementById('transformationPreview').style.display = 'none';
+            document.getElementById('sourceProductsDropdown').style.display = 'none';
+            document.getElementById('targetProductsDropdown').style.display = 'none';
+        }
+
+        // Cargar historial de transformaciones
+        function loadTransformationsHistory() {
+            const tbody = document.getElementById('transformationsTableBody');
+
+            if (transformations.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" style="text-align: center; padding: 40px; color: #999;">
+                            <div style="font-size: 48px; margin-bottom: 10px;">🔄</div>
+                            <div>No hay transformaciones registradas aún</div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            // Ordenar por fecha más reciente
+            const sortedTransformations = [...transformations].sort((a, b) =>
+                new Date(b.date) - new Date(a.date)
+            );
+
+            tbody.innerHTML = sortedTransformations.map(t => `
+                <tr>
+                    <td style="white-space: nowrap;">${new Date(t.date).toLocaleString('es-PY', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    })}</td>
+                    <td><strong>${t.sourceCode}</strong><br><span style="font-size: 12px; color: #666;">${t.sourceName}</span></td>
+                    <td style="text-align: center;">
+                        <div style="background: #fff3cd; padding: 8px; border-radius: 6px;">
+                            <div style="font-size: 11px; color: #856404; margin-bottom: 4px;">Antes</div>
+                            <div style="font-weight: bold; font-size: 14px;">${t.sourceStockBefore || '?'} ${t.unit}</div>
+                            <div style="font-size: 18px; color: #ff6b6b; margin: 4px 0;">↓</div>
+                            <div style="font-size: 11px; color: #856404; margin-bottom: 4px;">Después</div>
+                            <div style="font-weight: bold; font-size: 14px;">${t.sourceStockAfter || '?'} ${t.unit}</div>
+                        </div>
+                    </td>
+                    <td style="text-align: center; font-size: 24px; color: #667eea;">→</td>
+                    <td><strong>${t.targetCode}</strong><br><span style="font-size: 12px; color: #666;">${t.targetName}</span></td>
+                    <td style="text-align: center;">
+                        <div style="background: #d4edda; padding: 8px; border-radius: 6px;">
+                            <div style="font-size: 11px; color: #155724; margin-bottom: 4px;">Antes</div>
+                            <div style="font-weight: bold; font-size: 14px;">${t.targetStockBefore || '?'} ${t.unit}</div>
+                            <div style="font-size: 18px; color: #28a745; margin: 4px 0;">↑</div>
+                            <div style="font-size: 11px; color: #155724; margin-bottom: 4px;">Después</div>
+                            <div style="font-weight: bold; font-size: 14px;">${t.targetStockAfter || '?'} ${t.unit}</div>
+                        </div>
+                    </td>
+                    <td style="text-align: center;"><strong style="font-size: 16px; color: #667eea;">${t.quantity}</strong> ${t.unit}</td>
+                    <td style="font-size: 13px; color: #666;">${t.notes || '-'}</td>
+                </tr>
+            `).join('');
+        }
+
+        // Cargar transformaciones desde Supabase
+        async function loadTransformations() {
+            try {
+                transformations = await loadTransformationsFromDB();
+                loadTransformationsHistory();
+            } catch (error) {
+                console.error('Error al cargar transformaciones:', error);
+                transformations = [];
+            }
+        }
+
     </script>
 
     <!-- MODAL DE CATEGORÍAS -->
