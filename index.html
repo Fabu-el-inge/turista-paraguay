@@ -172,6 +172,27 @@
             font-weight: 600;
         }
 
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 13px;
+        }
+
+        .sales-filter-btn {
+            background: #f0f0f0;
+            color: #333;
+            border: 2px solid transparent;
+        }
+
+        .sales-filter-btn:hover {
+            background: #e0e0e0;
+        }
+
+        .sales-filter-btn.active {
+            background: #007bff;
+            color: white;
+            border-color: #0056b3;
+        }
+
         .btn-primary {
             background: #667eea;
             color: white;
@@ -1544,7 +1565,15 @@
                     </div>
                 </div>
 
-                <h3 style="margin-top: 40px; margin-bottom: 15px;">Historial de Ventas</h3>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 40px; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                    <h3 style="margin: 0;">Historial de Ventas</h3>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <button class="btn btn-sm sales-filter-btn active" onclick="filterSales('today')" data-filter="today">Hoy</button>
+                        <button class="btn btn-sm sales-filter-btn" onclick="filterSales('week')" data-filter="week">Esta Semana</button>
+                        <button class="btn btn-sm sales-filter-btn" onclick="filterSales('month')" data-filter="month">Este Mes</button>
+                        <button class="btn btn-sm sales-filter-btn" onclick="filterSales('all')" data-filter="all">Todas</button>
+                    </div>
+                </div>
                 <div class="table-container">
                     <table>
                         <thead>
@@ -1834,6 +1863,7 @@
         let clients = [];
         let cart = []; // Carrito de compras temporal
         let transformations = []; // Historial de transformaciones
+        let currentSalesFilter = 'today'; // Filtro de ventas: today, week, month, all
 
         // Función para mostrar notificaciones toast
         function showToast(message, duration = 2000) {
@@ -3164,8 +3194,54 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
                 return;
             }
 
-            // Mostrar últimas 20 ventas
-            const recentSales = [...sales].reverse().slice(0, 20);
+            // Filtrar ventas según el filtro activo
+            let filteredSales = [...sales];
+            const now = new Date();
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+            if (currentSalesFilter === 'today') {
+                filteredSales = sales.filter(sale => {
+                    const saleDate = new Date(sale.created_at);
+                    const saleDateOnly = new Date(saleDate.getFullYear(), saleDate.getMonth(), saleDate.getDate());
+                    return saleDateOnly.getTime() === today.getTime();
+                });
+            } else if (currentSalesFilter === 'week') {
+                const oneWeekAgo = new Date(today);
+                oneWeekAgo.setDate(today.getDate() - 7);
+                filteredSales = sales.filter(sale => {
+                    const saleDate = new Date(sale.created_at);
+                    return saleDate >= oneWeekAgo;
+                });
+            } else if (currentSalesFilter === 'month') {
+                const oneMonthAgo = new Date(today);
+                oneMonthAgo.setMonth(today.getMonth() - 1);
+                filteredSales = sales.filter(sale => {
+                    const saleDate = new Date(sale.created_at);
+                    return saleDate >= oneMonthAgo;
+                });
+            }
+            // Si es 'all', no filtramos
+
+            if (filteredSales.length === 0) {
+                let message = 'No hay ventas ';
+                if (currentSalesFilter === 'today') message += 'hoy';
+                else if (currentSalesFilter === 'week') message += 'esta semana';
+                else if (currentSalesFilter === 'month') message += 'este mes';
+                else message += 'registradas';
+
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="empty-state">
+                            <div class="empty-state-icon">💰</div>
+                            <div>${message}</div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            // Mostrar ventas filtradas (más recientes primero)
+            const recentSales = [...filteredSales].reverse();
 
             recentSales.forEach(sale => {
                 const date = new Date(sale.created_at);
@@ -3190,6 +3266,20 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
                     </tr>
                 `;
             });
+        }
+
+        // Filtrar ventas por período
+        function filterSales(filter) {
+            currentSalesFilter = filter;
+
+            // Actualizar botones activos
+            document.querySelectorAll('.sales-filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-filter="${filter}"]`).classList.add('active');
+
+            // Recargar historial con el nuevo filtro
+            loadSalesHistory();
         }
 
         // Cargar ventas
