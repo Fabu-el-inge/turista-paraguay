@@ -177,17 +177,20 @@
             font-size: 13px;
         }
 
-        .sales-filter-btn {
+        .sales-filter-btn,
+        .transformations-filter-btn {
             background: #f0f0f0;
             color: #333;
             border: 2px solid transparent;
         }
 
-        .sales-filter-btn:hover {
+        .sales-filter-btn:hover,
+        .transformations-filter-btn:hover {
             background: #e0e0e0;
         }
 
-        .sales-filter-btn.active {
+        .sales-filter-btn.active,
+        .transformations-filter-btn.active {
             background: #007bff;
             color: white;
             border-color: #0056b3;
@@ -1553,7 +1556,15 @@
                 </div>
 
                 <!-- Historial de Transformaciones -->
-                <h3 style="margin-bottom: 15px;">📜 Historial de Transformaciones</h3>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                    <h3 style="margin: 0;">📜 Historial de Transformaciones</h3>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <button class="btn btn-sm transformations-filter-btn active" onclick="filterTransformations('today')" data-filter="today">Hoy</button>
+                        <button class="btn btn-sm transformations-filter-btn" onclick="filterTransformations('week')" data-filter="week">Esta Semana</button>
+                        <button class="btn btn-sm transformations-filter-btn" onclick="filterTransformations('month')" data-filter="month">Este Mes</button>
+                        <button class="btn btn-sm transformations-filter-btn" onclick="filterTransformations('all')" data-filter="all">Todas</button>
+                    </div>
+                </div>
                 <div id="transformationsHistoryContainer">
                     <!-- Se llenará dinámicamente -->
                 </div>
@@ -1954,6 +1965,7 @@
         let cart = []; // Carrito de compras temporal
         let transformations = []; // Historial de transformaciones
         let currentSalesFilter = 'today'; // Filtro de ventas: today, week, month, all
+        let currentTransformationsFilter = 'today'; // Filtro de transformaciones: today, week, month, all
 
         // Función para mostrar notificaciones toast
         function showToast(message, duration = 2000) {
@@ -4206,8 +4218,52 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
                 return;
             }
 
+            // Filtrar transformaciones según el filtro activo
+            let filteredTransformations = [...transformations];
+            const now = new Date();
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+            if (currentTransformationsFilter === 'today') {
+                filteredTransformations = transformations.filter(t => {
+                    const transformDate = new Date(t.date);
+                    const transformDateOnly = new Date(transformDate.getFullYear(), transformDate.getMonth(), transformDate.getDate());
+                    return transformDateOnly.getTime() === today.getTime();
+                });
+            } else if (currentTransformationsFilter === 'week') {
+                const oneWeekAgo = new Date(today);
+                oneWeekAgo.setDate(today.getDate() - 7);
+                filteredTransformations = transformations.filter(t => {
+                    const transformDate = new Date(t.date);
+                    return transformDate >= oneWeekAgo;
+                });
+            } else if (currentTransformationsFilter === 'month') {
+                const oneMonthAgo = new Date(today);
+                oneMonthAgo.setMonth(today.getMonth() - 1);
+                filteredTransformations = transformations.filter(t => {
+                    const transformDate = new Date(t.date);
+                    return transformDate >= oneMonthAgo;
+                });
+            }
+            // Si es 'all', no filtramos
+
+            if (filteredTransformations.length === 0) {
+                let message = 'No hay transformaciones ';
+                if (currentTransformationsFilter === 'today') message += 'hoy';
+                else if (currentTransformationsFilter === 'week') message += 'esta semana';
+                else if (currentTransformationsFilter === 'month') message += 'este mes';
+                else message += 'registradas';
+
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #999; background: white; border-radius: 12px;">
+                        <div style="font-size: 48px; margin-bottom: 10px;">🔄</div>
+                        <div>${message}</div>
+                    </div>
+                `;
+                return;
+            }
+
             // Ordenar por fecha más reciente
-            const sortedTransformations = [...transformations].sort((a, b) =>
+            const sortedTransformations = [...filteredTransformations].sort((a, b) =>
                 new Date(b.date) - new Date(a.date)
             );
 
@@ -4270,6 +4326,20 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
                     ${t.notes ? `<div class="transformation-card-notes">📝 ${t.notes}</div>` : ''}
                 </div>
             `).join('');
+        }
+
+        // Filtrar transformaciones por período
+        function filterTransformations(filter) {
+            currentTransformationsFilter = filter;
+
+            // Actualizar botones activos
+            document.querySelectorAll('.transformations-filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`.transformations-filter-btn[data-filter="${filter}"]`).classList.add('active');
+
+            // Recargar historial con el nuevo filtro
+            loadTransformationsHistory();
         }
 
         // Cargar transformaciones desde Supabase
