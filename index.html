@@ -847,18 +847,26 @@
 
             /* Total destacado con badge */
             #salesHistoryBody .col-sale-total {
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                background: #667eea;
                 color: white;
-                padding: 8px 12px !important;
-                border-radius: 8px;
-                font-size: 18px;
+                padding: 6px 10px !important;
+                border-radius: 6px;
+                font-size: 14px;
                 font-weight: 700;
-                text-align: center;
-                margin: 10px 0;
+                text-align: left;
+                margin: 8px 0;
+                display: block;
+                word-break: break-word;
             }
 
             #salesHistoryBody .col-sale-total strong {
                 color: white;
+                font-size: 14px;
+            }
+
+            #salesHistoryBody .col-sale-total:before {
+                content: "💰 Total: ";
+                font-weight: 600;
             }
 
             /* Agregar etiquetas antes de cada dato */
