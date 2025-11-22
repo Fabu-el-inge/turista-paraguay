@@ -1141,6 +1141,74 @@
             color: #666;
         }
 
+        /* Estilos para vista previa de transformación responsive */
+        .transformation-preview-grid {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 15px;
+            align-items: center;
+        }
+
+        @media (max-width: 768px) {
+            .transformation-preview-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .transformation-preview-grid > div:nth-child(2) {
+                transform: rotate(90deg);
+                font-size: 24px;
+            }
+
+            /* Hacer tabla de historial scrolleable horizontalmente */
+            .table-container {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .table-container table {
+                min-width: 800px;
+                font-size: 12px;
+            }
+
+            .table-container th,
+            .table-container td {
+                padding: 8px 6px;
+                white-space: nowrap;
+            }
+
+            /* Ajustar info boxes en historial para móvil */
+            .table-container td > div[style*="background: #fff3cd"],
+            .table-container td > div[style*="background: #d4edda"] {
+                padding: 6px !important;
+                min-width: 100px;
+            }
+
+            .table-container td > div[style*="background: #fff3cd"] > div,
+            .table-container td > div[style*="background: #d4edda"] > div {
+                font-size: 10px !important;
+            }
+
+            /* Título de sección más pequeño */
+            #production h2 {
+                font-size: 20px;
+            }
+
+            #production h3 {
+                font-size: 16px;
+            }
+
+            /* Formulario de transformación */
+            #production .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            #production .info-box {
+                font-size: 13px;
+                padding: 12px;
+            }
+        }
+
         </style>
 </head>
 <body>
@@ -1328,19 +1396,19 @@
                             </div>
                         </div>
 
-                        <div id="transformationPreview" style="display: none; background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #667eea;">
-                            <h4 style="margin-top: 0; color: #667eea;">📋 Vista Previa de la Transformación</h4>
-                            <div style="display: grid; grid-template-columns: 1fr auto 1fr; gap: 20px; align-items: center;">
-                                <div style="text-align: center; padding: 15px; background: #fff3cd; border-radius: 8px;">
-                                    <div style="font-size: 12px; color: #856404; margin-bottom: 5px;">INSUMO</div>
-                                    <div id="previewSourceName" style="font-weight: bold; margin-bottom: 5px;"></div>
-                                    <div id="previewSourceStock" style="font-size: 14px; color: #666;"></div>
+                        <div id="transformationPreview" style="display: none; background: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #667eea;">
+                            <h4 style="margin-top: 0; color: #667eea; font-size: 16px;">📋 Vista Previa</h4>
+                            <div class="transformation-preview-grid">
+                                <div style="text-align: center; padding: 12px; background: #fff3cd; border-radius: 8px;">
+                                    <div style="font-size: 11px; color: #856404; margin-bottom: 5px; font-weight: 600;">INSUMO</div>
+                                    <div id="previewSourceName" style="font-weight: bold; margin-bottom: 5px; font-size: 13px;"></div>
+                                    <div id="previewSourceStock" style="font-size: 12px; color: #666;"></div>
                                 </div>
-                                <div style="font-size: 24px; color: #667eea;">→</div>
-                                <div style="text-align: center; padding: 15px; background: #d4edda; border-radius: 8px;">
-                                    <div style="font-size: 12px; color: #155724; margin-bottom: 5px;">PRODUCTO</div>
-                                    <div id="previewTargetName" style="font-weight: bold; margin-bottom: 5px;"></div>
-                                    <div id="previewTargetStock" style="font-size: 14px; color: #666;"></div>
+                                <div style="font-size: 20px; color: #667eea; text-align: center; display: flex; align-items: center; justify-content: center;">→</div>
+                                <div style="text-align: center; padding: 12px; background: #d4edda; border-radius: 8px;">
+                                    <div style="font-size: 11px; color: #155724; margin-bottom: 5px; font-weight: 600;">PRODUCTO</div>
+                                    <div id="previewTargetName" style="font-weight: bold; margin-bottom: 5px; font-size: 13px;"></div>
+                                    <div id="previewTargetStock" style="font-size: 12px; color: #666;"></div>
                                 </div>
                             </div>
                         </div>
