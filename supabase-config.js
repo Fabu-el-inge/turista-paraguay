@@ -563,6 +563,12 @@ async function loadTransformationsFromDB() {
 
         if (error) throw error;
 
+        // EVIDENCIA: Mostrar datos RAW de la base de datos
+        console.log('===== EVIDENCIA DE DATOS EN SUPABASE =====');
+        console.table(data);
+        console.log('Primer registro completo:', JSON.stringify(data[0], null, 2));
+        console.log('==========================================');
+
         return data.map(t => ({
             id: t.id,
             sourceId: t.source_id,

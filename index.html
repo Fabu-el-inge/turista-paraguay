@@ -649,7 +649,7 @@
 
             #productsTableBody tr {
                 display: grid;
-                grid-template-columns: 70px 1fr;
+                grid-template-columns: 1fr 70px;
                 gap: 12px;
                 background: white;
                 border-radius: 10px;
@@ -672,14 +672,15 @@
                 display: none;
             }
 
-            /* Imagen en tarjeta móvil - primera columna del grid */
+            /* Imagen en tarjeta móvil - segunda columna del grid (derecha) */
             #productsTableBody .col-image {
-                grid-column: 1;
+                grid-column: 2;
                 grid-row: 1 / span 10;
                 padding: 0;
                 margin: 0;
                 display: flex;
                 align-items: flex-start;
+                justify-content: flex-end;
             }
 
             #productsTableBody .col-image img {
@@ -690,9 +691,9 @@
                 box-shadow: 0 2px 4px rgba(0,0,0,0.15) !important;
             }
 
-            /* Código y Nombre destacados - segunda columna */
+            /* Código y Nombre destacados - primera columna */
             #productsTableBody .col-code {
-                grid-column: 2;
+                grid-column: 1;
                 font-size: 12px;
                 color: #667eea;
                 font-weight: 700;
@@ -701,7 +702,7 @@
             }
 
             #productsTableBody .col-name {
-                grid-column: 2;
+                grid-column: 1;
                 font-size: 16px;
                 font-weight: 600;
                 color: #212529;
@@ -709,12 +710,12 @@
                 padding-right: 0;
             }
 
-            /* Resto de columnas en la segunda columna del grid */
+            /* Resto de columnas en la primera columna del grid */
             #productsTableBody .col-category,
             #productsTableBody .col-stock,
             #productsTableBody .col-price,
             #productsTableBody .col-status {
-                grid-column: 2;
+                grid-column: 1;
             }
 
             /* Botones ocupan ambas columnas */
@@ -758,11 +759,11 @@
             #productsTableBody .action-btn {
                 flex: 1;
                 width: auto !important;
-                padding: 10px 6px;
+                padding: 12px 8px;
                 font-size: 18px;
                 text-align: center;
-                min-height: 44px;
-                max-width: 32%;
+                min-height: 50px;
+                max-width: none;
             }
 
             /* Ocultar texto de botones en móvil, solo mostrar emojis */
@@ -775,7 +776,7 @@
                 content: attr(data-label);
                 display: block;
                 font-size: 10px;
-                margin-top: 3px;
+                margin-top: 4px;
                 opacity: 0.8;
             }
 
@@ -4362,14 +4363,10 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
                             <div class="transformation-card-product-name">${t.sourceName}</div>
                             <div class="transformation-card-stocks" style="background: #fff3cd;">
                                 <div class="transformation-card-stock-item">
-                                    <span class="transformation-card-stock-label" style="color: #856404;">Antes:</span>
-                                    <span class="transformation-card-stock-value" style="color: #856404;">${t.sourceStockBefore != null ? t.sourceStockBefore + ' ' + t.unit : '?'}</span>
+                                    <span class="transformation-card-stock-label" style="color: #856404;">Cantidad:</span>
+                                    <span class="transformation-card-stock-value" style="color: #856404;">${t.quantity} ${t.unit}</span>
                                 </div>
                                 <div style="text-align: center; font-size: 16px; color: #ff6b6b; margin: 5px 0;">↓</div>
-                                <div class="transformation-card-stock-item">
-                                    <span class="transformation-card-stock-label" style="color: #856404;">Después:</span>
-                                    <span class="transformation-card-stock-value" style="color: #856404;">${t.sourceStockAfter != null ? t.sourceStockAfter + ' ' + t.unit : '?'}</span>
-                                </div>
                             </div>
                         </div>
 
@@ -4381,14 +4378,10 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
                             <div class="transformation-card-product-code">${t.targetCode}</div>
                             <div class="transformation-card-product-name">${t.targetName}</div>
                             <div class="transformation-card-stocks" style="background: #d4edda;">
-                                <div class="transformation-card-stock-item">
-                                    <span class="transformation-card-stock-label" style="color: #155724;">Antes:</span>
-                                    <span class="transformation-card-stock-value" style="color: #155724;">${t.targetStockBefore != null ? t.targetStockBefore + ' ' + t.unit : '?'}</span>
-                                </div>
                                 <div style="text-align: center; font-size: 16px; color: #28a745; margin: 5px 0;">↑</div>
                                 <div class="transformation-card-stock-item">
-                                    <span class="transformation-card-stock-label" style="color: #155724;">Después:</span>
-                                    <span class="transformation-card-stock-value" style="color: #155724;">${t.targetStockAfter != null ? t.targetStockAfter + ' ' + t.unit : '?'}</span>
+                                    <span class="transformation-card-stock-label" style="color: #155724;">Cantidad:</span>
+                                    <span class="transformation-card-stock-value" style="color: #155724;">${t.quantity} ${t.unit}</span>
                                 </div>
                             </div>
                         </div>
