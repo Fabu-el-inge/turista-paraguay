@@ -622,7 +622,9 @@
             }
 
             #productsTableBody tr {
-                display: block;
+                display: grid;
+                grid-template-columns: 70px 1fr;
+                gap: 12px;
                 background: white;
                 border-radius: 10px;
                 padding: 12px;
@@ -633,7 +635,7 @@
 
             #productsTableBody td {
                 display: block;
-                padding: 5px 0;
+                padding: 3px 0;
                 border: none;
                 text-align: left;
                 white-space: normal;
@@ -644,38 +646,54 @@
                 display: none;
             }
 
-            /* Imagen en tarjeta móvil */
+            /* Imagen en tarjeta móvil - primera columna del grid */
             #productsTableBody .col-image {
-                position: absolute;
-                top: 12px;
-                right: 12px;
+                grid-column: 1;
+                grid-row: 1 / span 10;
                 padding: 0;
                 margin: 0;
+                display: flex;
+                align-items: flex-start;
             }
 
             #productsTableBody .col-image img {
-                width: 65px !important;
-                height: 65px !important;
+                width: 70px !important;
+                height: 70px !important;
                 object-fit: cover;
                 border-radius: 8px !important;
                 box-shadow: 0 2px 4px rgba(0,0,0,0.15) !important;
             }
 
-            /* Código y Nombre destacados */
+            /* Código y Nombre destacados - segunda columna */
             #productsTableBody .col-code {
+                grid-column: 2;
                 font-size: 12px;
                 color: #667eea;
                 font-weight: 700;
-                margin-bottom: 3px;
-                padding-right: 75px; /* Espacio para la imagen */
+                margin-bottom: 2px;
+                padding-right: 0;
             }
 
             #productsTableBody .col-name {
+                grid-column: 2;
                 font-size: 16px;
                 font-weight: 600;
                 color: #212529;
                 margin-bottom: 8px;
-                padding-right: 75px; /* Espacio para la imagen */
+                padding-right: 0;
+            }
+
+            /* Resto de columnas en la segunda columna del grid */
+            #productsTableBody .col-category,
+            #productsTableBody .col-stock,
+            #productsTableBody .col-price,
+            #productsTableBody .col-status {
+                grid-column: 2;
+            }
+
+            /* Botones ocupan ambas columnas */
+            #productsTableBody .col-actions {
+                grid-column: 1 / -1;
             }
 
             /* Agregar etiquetas antes de cada dato */
