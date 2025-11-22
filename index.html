@@ -704,19 +704,35 @@
             /* Botones de acción en tarjeta */
             #productsTableBody .col-actions {
                 display: flex;
-                gap: 8px;
+                gap: 6px;
                 margin-top: 15px;
                 padding-top: 15px;
                 border-top: 1px solid #eee;
+                justify-content: space-between;
             }
 
             #productsTableBody .action-btn {
                 flex: 1;
                 width: auto !important;
-                padding: 10px 8px;
-                font-size: 12px;
+                padding: 10px 6px;
+                font-size: 18px;
                 text-align: center;
-                min-height: 40px;
+                min-height: 44px;
+                max-width: 32%;
+            }
+
+            /* Ocultar texto de botones en móvil, solo mostrar emojis */
+            #productsTableBody .action-btn {
+                font-size: 20px;
+                line-height: 1;
+            }
+
+            #productsTableBody .action-btn::after {
+                content: attr(data-label);
+                display: block;
+                font-size: 10px;
+                margin-top: 3px;
+                opacity: 0.8;
             }
 
             /* Mostrar clientes como tarjetas en móvil */
@@ -2842,9 +2858,9 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
                             <td class="col-image">${product.imageUrl ? `<img src="${product.imageUrl}" style="width:50px;height:50px;object-fit:cover;border-radius:5px;cursor:pointer;" onclick='showImageModal("${product.imageUrl}")'>` : '❌'}</td>
                             <td class="col-status">${stockStatus}</td>
                             <td class="col-actions action-btns">
-                                <button class="action-btn btn-info" onclick="showProductDetails(${product.id})" style="background: #17a2b8;">👁️ Ver</button>
-                                <button class="action-btn btn-primary" onclick="openProductModal(${product.id})">✏️ Editar</button>
-                                <button class="action-btn btn-danger" onclick="deleteProduct(${product.id})">🗑️</button>
+                                <button class="action-btn btn-info" onclick="showProductDetails(${product.id})" style="background: #17a2b8;" data-label="Ver">👁️</button>
+                                <button class="action-btn btn-primary" onclick="openProductModal(${product.id})" data-label="Editar">✏️</button>
+                                <button class="action-btn btn-danger" onclick="deleteProduct(${product.id})" data-label="Borrar">🗑️</button>
                             </td>
                         </tr>
                     `;
