@@ -480,7 +480,7 @@ async function loadCategoriesFromDB() {
     } catch (error) {
         console.error('Error al cargar categorías:', error);
         // Si hay error, devolver categorías predeterminadas
-        return ['Remeras', 'Recuerdos', 'Botellas', 'Stickers', 'Gorras', 'Llaveros', 'Tazas', 'Materiales', 'Telas', 'Otros'];
+        return ['Remeras', 'Recuerdos', 'Botellas', 'Stickers', 'Gorras', 'Llaveros', 'Tazas', 'Materiales', 'Telas', 'Paquete de Regalo', 'Otros'];
     }
 }
 
@@ -589,5 +589,204 @@ async function loadTransformationsFromDB() {
     } catch (error) {
         console.error('Error al cargar transformaciones:', error);
         return [];
+    }
+}
+
+// ============================================
+// FUNCIONES PARA PEDIDOS
+// ============================================
+
+async function loadPedidosFromDB() {
+    try {
+        const { data, error } = await supabase
+            .from('pedidos')
+            .select('*')
+            .order('fecha_pedido', { ascending: false });
+
+        if (error) throw error;
+
+        return data.map(p => ({
+            id: p.id,
+            numeroPedido: p.numero_pedido,
+            clienteId: p.cliente_id,
+            clienteNombre: p.cliente_nombre,
+            clienteTelefono: p.cliente_telefono,
+            clienteEmail: p.cliente_email,
+            tipoServicio: p.tipo_servicio,
+            productoBase: p.producto_base,
+            productoFoto: p.producto_foto,
+            tamano: p.tamano,
+            color: p.color,
+            tamanoDiseno: p.tamano_diseno,
+            cantidadColores: p.cantidad_colores,
+            areaGrabado: p.area_grabado,
+            cantidad: p.cantidad,
+            precioBase: p.precio_base,
+            precioServicio: p.precio_servicio,
+            precioExtras: p.precio_extras,
+            descuentoPorcentaje: p.descuento_porcentaje,
+            recargoUrgente: p.recargo_urgente,
+            precioDelivery: p.precio_delivery,
+            total: p.total,
+            esUrgente: p.es_urgente,
+            incluyeDelivery: p.incluye_delivery,
+            disenoPersonalizado: p.diseno_personalizado,
+            fechaPedido: p.fecha_pedido,
+            fechaEntrega: p.fecha_entrega,
+            estado: p.estado,
+            observaciones: p.observaciones,
+            notasInternas: p.notas_internas,
+            createdAt: p.created_at,
+            updatedAt: p.updated_at
+        }));
+    } catch (error) {
+        console.error('Error al cargar pedidos:', error);
+        return [];
+    }
+}
+
+async function savePedidoToDB(pedido) {
+    try {
+        const dbPedido = {
+            numero_pedido: pedido.numeroPedido,
+            cliente_id: pedido.clienteId || null,
+            cliente_nombre: pedido.clienteNombre,
+            cliente_telefono: pedido.clienteTelefono || null,
+            cliente_email: pedido.clienteEmail || null,
+            tipo_servicio: pedido.tipoServicio,
+            producto_base: pedido.productoBase || null,
+            producto_foto: pedido.productoFoto || null,
+            tamano: pedido.tamano || null,
+            color: pedido.color || null,
+            tamano_diseno: pedido.tamanoDiseno || null,
+            cantidad_colores: pedido.cantidadColores || 1,
+            area_grabado: pedido.areaGrabado || null,
+            cantidad: pedido.cantidad,
+            precio_base: pedido.precioBase,
+            precio_servicio: pedido.precioServicio,
+            precio_extras: pedido.precioExtras,
+            descuento_porcentaje: pedido.descuentoPorcentaje,
+            recargo_urgente: pedido.recargoUrgente,
+            precio_delivery: pedido.precioDelivery,
+            total: pedido.total,
+            es_urgente: pedido.esUrgente || false,
+            incluye_delivery: pedido.incluyeDelivery || false,
+            diseno_personalizado: pedido.disenoPersonalizado || false,
+            fecha_pedido: pedido.fechaPedido || new Date().toISOString(),
+            fecha_entrega: pedido.fechaEntrega || null,
+            estado: pedido.estado || 'presupuesto',
+            observaciones: pedido.observaciones || null,
+            notas_internas: pedido.notasInternas || null
+        };
+
+        const { data, error } = await supabase
+            .from('pedidos')
+            .insert([dbPedido])
+            .select();
+
+        if (error) throw error;
+
+        return data[0];
+    } catch (error) {
+        console.error('Error al guardar pedido:', error);
+        alert('❌ Error al guardar pedido: ' + error.message);
+        return null;
+    }
+}
+
+async function updatePedidoInDB(pedidoId, updates) {
+    try {
+        const dbUpdates = {};
+
+        if (updates.clienteNombre !== undefined) dbUpdates.cliente_nombre = updates.clienteNombre;
+        if (updates.clienteTelefono !== undefined) dbUpdates.cliente_telefono = updates.clienteTelefono;
+        if (updates.clienteEmail !== undefined) dbUpdates.cliente_email = updates.clienteEmail;
+        if (updates.tipoServicio !== undefined) dbUpdates.tipo_servicio = updates.tipoServicio;
+        if (updates.productoBase !== undefined) dbUpdates.producto_base = updates.productoBase;
+        if (updates.productoFoto !== undefined) dbUpdates.producto_foto = updates.productoFoto;
+        if (updates.tamano !== undefined) dbUpdates.tamano = updates.tamano;
+        if (updates.color !== undefined) dbUpdates.color = updates.color;
+        if (updates.tamanoDiseno !== undefined) dbUpdates.tamano_diseno = updates.tamanoDiseno;
+        if (updates.cantidad !== undefined) dbUpdates.cantidad = updates.cantidad;
+        if (updates.precioBase !== undefined) dbUpdates.precio_base = updates.precioBase;
+        if (updates.precioServicio !== undefined) dbUpdates.precio_servicio = updates.precioServicio;
+        if (updates.total !== undefined) dbUpdates.total = updates.total;
+        if (updates.esUrgente !== undefined) dbUpdates.es_urgente = updates.esUrgente;
+        if (updates.incluyeDelivery !== undefined) dbUpdates.incluye_delivery = updates.incluyeDelivery;
+        if (updates.fechaEntrega !== undefined) dbUpdates.fecha_entrega = updates.fechaEntrega;
+        if (updates.estado !== undefined) dbUpdates.estado = updates.estado;
+        if (updates.observaciones !== undefined) dbUpdates.observaciones = updates.observaciones;
+
+        dbUpdates.updated_at = new Date().toISOString();
+
+        const { data, error } = await supabase
+            .from('pedidos')
+            .update(dbUpdates)
+            .eq('id', pedidoId)
+            .select();
+
+        if (error) throw error;
+
+        return data[0];
+    } catch (error) {
+        console.error('Error al actualizar pedido:', error);
+        alert('❌ Error al actualizar pedido: ' + error.message);
+        return null;
+    }
+}
+
+async function deletePedidoFromDB(pedidoId) {
+    try {
+        const { error } = await supabase
+            .from('pedidos')
+            .delete()
+            .eq('id', pedidoId);
+
+        if (error) throw error;
+
+        return true;
+    } catch (error) {
+        console.error('Error al eliminar pedido:', error);
+        alert('❌ Error al eliminar pedido: ' + error.message);
+        return false;
+    }
+}
+
+async function loadConfigPreciosFromDB() {
+    try {
+        const { data, error } = await supabase
+            .from('config_precios')
+            .select('*')
+            .eq('activo', true);
+
+        if (error) throw error;
+
+        return data.map(c => ({
+            id: c.id,
+            categoria: c.categoria,
+            tipo: c.tipo,
+            tamano: c.tamano,
+            precio: c.precio,
+            descripcion: c.descripcion
+        }));
+    } catch (error) {
+        console.error('Error al cargar configuración de precios:', error);
+        return [];
+    }
+}
+
+async function generateNumeroPedido() {
+    try {
+        const { data, error } = await supabase.rpc('generate_numero_pedido');
+
+        if (error) throw error;
+
+        return data;
+    } catch (error) {
+        console.error('Error al generar número de pedido:', error);
+        // Fallback: generar número localmente
+        const year = new Date().getFullYear().toString().slice(-2);
+        const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+        return `PD${year}${random}`;
     }
 }
