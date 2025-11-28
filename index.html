@@ -4831,6 +4831,7 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
             await loadProductosInPedidoSelect();
             await loadServiciosInSelect();
             await loadPaquetesRegaloInSelect();
+            loadMaterialesInSelect();
 
             // Reset calculadora
             calcularTotal();
@@ -5078,6 +5079,94 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
                     alert('Error al guardar el servicio: ' + error.message);
                 }
             }
+        }
+
+        // === GESTIÓN DE MATERIALES ===
+
+        // Cargar materiales en el select
+        function loadMaterialesInSelect() {
+            const select = document.getElementById('pedidoMaterial');
+            const materiales = JSON.parse(localStorage.getItem('materiales') || '["Algodón","Poliéster","Algodón/Poliéster","Sublimable","Cerámica","Vidrio","Metal","Madera","Plástico","Otro"]');
+
+            select.innerHTML = '<option value="">Seleccionar...</option>';
+            materiales.forEach(material => {
+                const option = document.createElement('option');
+                option.value = material.toLowerCase();
+                option.textContent = material;
+                select.appendChild(option);
+            });
+        }
+
+        // Abrir modal de gestión de materiales
+        function openGestionMaterialesModal() {
+            document.getElementById('gestionMaterialesModal').style.display = 'flex';
+            loadMaterialesList();
+        }
+
+        // Cerrar modal de gestión de materiales
+        function closeGestionMaterialesModal() {
+            document.getElementById('gestionMaterialesModal').style.display = 'none';
+            document.getElementById('nuevoMaterialNombre').value = '';
+        }
+
+        // Cargar lista de materiales en el modal
+        function loadMaterialesList() {
+            const materiales = JSON.parse(localStorage.getItem('materiales') || '["Algodón","Poliéster","Algodón/Poliéster","Sublimable","Cerámica","Vidrio","Metal","Madera","Plástico","Otro"]');
+            const container = document.getElementById('materialesListContainer');
+
+            if (materiales.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">No hay materiales registrados</p>';
+                return;
+            }
+
+            container.innerHTML = materiales.map((material, index) => `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; background: white; border-radius: 8px; margin-bottom: 10px; border: 1px solid #e0e0e0;">
+                    <div>
+                        <div style="font-weight: bold; color: #333;">${material}</div>
+                    </div>
+                    <button type="button" class="btn btn-danger" onclick="eliminarMaterial('${material.replace(/'/g, "\\'")}', ${index})" style="font-size: 12px; padding: 6px 12px;">🗑️ Eliminar</button>
+                </div>
+            `).join('');
+        }
+
+        // Agregar nuevo material
+        function agregarNuevoMaterial() {
+            const nombre = document.getElementById('nuevoMaterialNombre').value.trim();
+
+            if (!nombre) {
+                alert('Por favor ingresa el nombre del material');
+                return;
+            }
+
+            const materiales = JSON.parse(localStorage.getItem('materiales') || '["Algodón","Poliéster","Algodón/Poliéster","Sublimable","Cerámica","Vidrio","Metal","Madera","Plástico","Otro"]');
+
+            if (materiales.includes(nombre)) {
+                alert('Ya existe un material con ese nombre');
+                return;
+            }
+
+            materiales.push(nombre);
+            localStorage.setItem('materiales', JSON.stringify(materiales));
+
+            alert('✅ Material creado exitosamente');
+            document.getElementById('nuevoMaterialNombre').value = '';
+            loadMaterialesInSelect();
+            loadMaterialesList();
+        }
+
+        // Eliminar material
+        function eliminarMaterial(nombre, index) {
+            if (!confirm(`¿Estás seguro de eliminar el material "${nombre}"?`)) {
+                return;
+            }
+
+            const materiales = JSON.parse(localStorage.getItem('materiales') || '[]');
+            materiales.splice(index, 1);
+            localStorage.setItem('materiales', JSON.stringify(materiales));
+
+            alert('✅ Material eliminado exitosamente');
+            loadMaterialesInSelect();
+            loadMaterialesList();
         }
 
         // Actualizar campos según tipo de servicio
@@ -5869,19 +5958,12 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
 
                         <!-- Material del Producto (solo para personalizado) -->
                         <div id="materialProductoGroup" class="form-group" style="display: none;">
-                            <label>Material del Producto</label>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                <label style="margin: 0;">Material del Producto</label>
+                                <button type="button" class="btn btn-secondary" onclick="openGestionMaterialesModal()" style="font-size: 11px; padding: 6px 10px;">⚙️ Gestionar</button>
+                            </div>
                             <select id="pedidoMaterial" style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px;">
                                 <option value="">Seleccionar...</option>
-                                <option value="algodon">Algodón</option>
-                                <option value="poliester">Poliéster</option>
-                                <option value="algodon_poliester">Algodón/Poliéster</option>
-                                <option value="sublimable">Sublimable</option>
-                                <option value="ceramica">Cerámica</option>
-                                <option value="vidrio">Vidrio</option>
-                                <option value="metal">Metal</option>
-                                <option value="madera">Madera</option>
-                                <option value="plastico">Plástico</option>
-                                <option value="otro">Otro</option>
                             </select>
                             <input type="text" id="pedidoMaterialOtro" placeholder="Especificar material" style="display: none; margin-top: 10px; width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px;" oninput="capitalizeFirst(this)">
                         </div>
@@ -6073,6 +6155,34 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
                 <div>
                     <h3 style="margin: 0 0 15px 0;">📋 Servicios Actuales</h3>
                     <div id="serviciosListContainer" style="max-height: 400px; overflow-y: auto;">
+                        <!-- Se llenará dinámicamente -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Gestión de Materiales -->
+    <div id="gestionMaterialesModal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h2>⚙️ Gestión de Materiales</h2>
+                <span class="close-btn" onclick="closeGestionMaterialesModal()">✖</span>
+            </div>
+            <div class="modal-body">
+                <!-- Formulario para agregar material -->
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+                    <h3 style="margin: 0 0 15px 0;">➕ Agregar Nuevo Material</h3>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" id="nuevoMaterialNombre" placeholder="Nombre del material (ej: Cuero)" style="flex: 1; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px;">
+                        <button type="button" class="btn btn-primary" onclick="agregarNuevoMaterial()">Agregar</button>
+                    </div>
+                </div>
+
+                <!-- Lista de materiales -->
+                <div>
+                    <h3 style="margin: 0 0 15px 0;">📋 Materiales Actuales</h3>
+                    <div id="materialesListContainer" style="max-height: 400px; overflow-y: auto;">
                         <!-- Se llenará dinámicamente -->
                     </div>
                 </div>
