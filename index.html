@@ -5186,6 +5186,13 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
                 } else if (servicio === 'grabado_laser') {
                     coloresGroup.style.display = 'none';
                     areaGrabadoGroup.style.display = 'block';
+
+                    // Autocompletar precios predefinidos para Grabado Láser
+                    document.getElementById('pedidoPrecioMinorista').value = 15000;
+                    document.getElementById('pedidoPrecioMayorista').value = 10000;
+
+                    // Recalcular total
+                    calcularTotal();
                 } else {
                     coloresGroup.style.display = 'block';
                     areaGrabadoGroup.style.display = 'none';
