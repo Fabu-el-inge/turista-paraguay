@@ -4880,7 +4880,7 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
 
                 if (error) throw error;
 
-                showNotification('Servicio creado exitosamente', 'success');
+                alert('✅ Servicio creado exitosamente');
                 closeNuevoServicioModal();
                 await loadServiciosInSelect();
             } catch (error) {
@@ -4907,7 +4907,7 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
 
                 if (error) throw error;
 
-                showNotification('Servicio eliminado exitosamente', 'success');
+                alert('✅ Servicio eliminado exitosamente');
                 await loadServiciosInSelect();
                 await loadServiciosList(); // Recargar lista en modal de gestión
             } catch (error) {
@@ -4989,7 +4989,7 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
 
                 if (error) throw error;
 
-                showNotification('Servicio creado exitosamente', 'success');
+                alert('✅ Servicio creado exitosamente');
                 document.getElementById('nuevoServicioNombre').value = '';
                 await loadServiciosInSelect();
                 await loadServiciosList();
