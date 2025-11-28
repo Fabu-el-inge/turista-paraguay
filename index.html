@@ -4679,6 +4679,32 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
             }
         }
 
+        // Toggle dropdown de productos
+        function toggleProductosDropdown() {
+            const dropdown = document.getElementById('productosBaseDropdown');
+            const isVisible = dropdown.style.display === 'block';
+
+            if (isVisible) {
+                dropdown.style.display = 'none';
+            } else {
+                dropdown.style.display = 'block';
+                // Focus en el buscador
+                setTimeout(() => {
+                    document.getElementById('searchProductoBase').focus();
+                }, 100);
+            }
+        }
+
+        // Cerrar dropdown al hacer clic fuera
+        document.addEventListener('click', function(e) {
+            const dropdown = document.getElementById('productosBaseDropdown');
+            const selector = document.getElementById('productoBaseSelector');
+
+            if (dropdown && selector && !dropdown.contains(e.target) && !selector.contains(e.target)) {
+                dropdown.style.display = 'none';
+            }
+        });
+
         // Seleccionar producto del listado
         function seleccionarProductoBase(id, nombre, precio, foto) {
             // Guardar datos
@@ -4686,17 +4712,16 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
             document.getElementById('pedidoPrecioBase').value = precio;
             document.getElementById('pedidoProductoFoto').value = foto;
 
+            // Actualizar texto del selector
+            document.getElementById('productoBaseSelectorText').textContent = nombre;
+            document.getElementById('productoBaseSelectorText').style.color = '#333';
+
             // Ocultar input personalizado
             document.getElementById('pedidoProductoBaseCustom').style.display = 'none';
             document.getElementById('materialProductoGroup').style.display = 'none';
 
-            // Highlight seleccionado
-            document.querySelectorAll('.producto-base-item').forEach(item => {
-                item.style.background = 'white';
-                item.style.borderLeft = 'none';
-            });
-            event.currentTarget.style.background = '#e8f0fe';
-            event.currentTarget.style.borderLeft = '4px solid #667eea';
+            // Cerrar dropdown
+            document.getElementById('productosBaseDropdown').style.display = 'none';
 
             // Recalcular total
             calcularTotal();
@@ -4709,17 +4734,16 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
             document.getElementById('pedidoPrecioBase').value = 0;
             document.getElementById('pedidoProductoFoto').value = '';
 
+            // Actualizar texto del selector
+            document.getElementById('productoBaseSelectorText').textContent = 'Producto Personalizado';
+            document.getElementById('productoBaseSelectorText').style.color = '#667eea';
+
             // Mostrar input personalizado
             document.getElementById('pedidoProductoBaseCustom').style.display = 'block';
             document.getElementById('materialProductoGroup').style.display = 'block';
 
-            // Highlight seleccionado
-            document.querySelectorAll('.producto-base-item').forEach(item => {
-                item.style.background = 'white';
-                item.style.borderLeft = 'none';
-            });
-            event.currentTarget.style.background = '#e8f0fe';
-            event.currentTarget.style.borderLeft = '4px solid #667eea';
+            // Cerrar dropdown
+            document.getElementById('productosBaseDropdown').style.display = 'none';
 
             // Focus en el input
             setTimeout(() => {
@@ -5807,14 +5831,26 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
                         <h3 style="margin: 0 0 15px 0; color: #667eea;">📦 Detalles del Producto</h3>
 
                         <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                            <div class="form-group">
+                            <div class="form-group" style="position: relative;">
                                 <label>Producto Base</label>
-                                <!-- Buscador -->
-                                <input type="text" id="searchProductoBase" placeholder="🔍 Buscar producto..." style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px; margin-bottom: 10px;" oninput="filterProductosBase()">
 
-                                <!-- Listado con fotos -->
-                                <div id="productosBaseList" style="max-height: 250px; overflow-y: auto; border: 2px solid #e0e0e0; border-radius: 8px; background: white;">
-                                    <!-- Se llenará dinámicamente -->
+                                <!-- Botón para abrir dropdown -->
+                                <div id="productoBaseSelector" onclick="toggleProductosDropdown()" style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px; background: white; cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+                                    <span id="productoBaseSelectorText" style="color: #999;">Seleccionar producto...</span>
+                                    <span style="font-size: 12px;">▼</span>
+                                </div>
+
+                                <!-- Dropdown con buscador y listado -->
+                                <div id="productosBaseDropdown" style="display: none; position: absolute; top: 100%; left: 0; right: 0; margin-top: 5px; background: white; border: 2px solid #667eea; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; max-height: 350px; overflow: hidden;">
+                                    <!-- Buscador -->
+                                    <div style="padding: 10px; border-bottom: 1px solid #e0e0e0; background: #f8f9fa;">
+                                        <input type="text" id="searchProductoBase" placeholder="🔍 Buscar producto..." style="width: 100%; padding: 8px; border: 2px solid #e0e0e0; border-radius: 6px;" oninput="filterProductosBase()" onclick="event.stopPropagation()">
+                                    </div>
+
+                                    <!-- Listado con fotos -->
+                                    <div id="productosBaseList" style="max-height: 290px; overflow-y: auto;">
+                                        <!-- Se llenará dinámicamente -->
+                                    </div>
                                 </div>
 
                                 <!-- Input oculto -->
