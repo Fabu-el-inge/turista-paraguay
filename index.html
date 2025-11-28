@@ -4630,97 +4630,137 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
         // Cargar productos en el selector de pedidos
         async function loadProductosInPedidoSelect() {
             try {
-                const select = document.getElementById('pedidoProductoBase');
+                const grid = document.getElementById('productosBaseGrid');
 
-                // Mantener las opciones por defecto
-                select.innerHTML = `
-                    <option value="">Seleccionar producto...</option>
-                    <option value="__custom__">➕ Producto personalizado</option>
+                // Crear tarjeta de producto personalizado
+                const customCard = `
+                    <div onclick="seleccionarProductoPersonalizado()" style="cursor: pointer; border: 2px dashed #667eea; border-radius: 10px; padding: 15px; text-align: center; transition: all 0.3s; background: white;">
+                        <div style="font-size: 40px; margin-bottom: 10px;">➕</div>
+                        <div style="font-size: 12px; font-weight: bold; color: #667eea;">Producto Personalizado</div>
+                    </div>
                 `;
 
-                // Cargar productos desde la base de datos
-                products.forEach(product => {
-                    const option = document.createElement('option');
-                    option.value = product.id;
-                    // Agregar emoji de imagen si tiene foto
-                    const iconoFoto = product.imageUrl ? '📸 ' : '📦 ';
-                    option.textContent = `${iconoFoto}${product.name}${product.brand ? ' - ' + product.brand : ''} (₲${formatGuaranies(product.price).replace('₲ ', '')} | Stock: ${formatUnit(product.stock, product.unit)})`;
-                    option.dataset.name = product.name;
-                    option.dataset.price = product.price;
-                    option.dataset.photo = product.imageUrl || '';
-                    select.appendChild(option);
-                });
+                // Crear tarjetas de productos
+                const productCards = products.map(product => {
+                    const hasImage = product.imageUrl;
+                    const imageHtml = hasImage
+                        ? `<img src="${product.imageUrl}" style="width: 100%; height: 100px; object-fit: cover; border-radius: 8px 8px 0 0;">`
+                        : `<div style="width: 100%; height: 100px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 8px 8px 0 0; display: flex; align-items: center; justify-content: center; font-size: 40px;">📦</div>`;
+
+                    return `
+                        <div class="producto-base-card" data-id="${product.id}" data-name="${product.name}" data-price="${product.price}" data-photo="${product.imageUrl || ''}" data-search="${product.name.toLowerCase()} ${(product.brand || '').toLowerCase()}" onclick="seleccionarProductoBase(${product.id}, '${product.name.replace(/'/g, "\\'")}', ${product.price}, '${product.imageUrl || ''}', '${hasImage ? product.imageUrl : ''}')" style="cursor: pointer; border: 2px solid #e0e0e0; border-radius: 10px; overflow: hidden; transition: all 0.3s; background: white;">
+                            ${imageHtml}
+                            <div style="padding: 10px;">
+                                <div style="font-size: 13px; font-weight: bold; color: #333; margin-bottom: 5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${product.name}">${product.name}</div>
+                                <div style="font-size: 12px; color: #667eea; font-weight: bold;">${formatGuaranies(product.price)}</div>
+                                <div style="font-size: 11px; color: #999; margin-top: 3px;">Stock: ${formatUnit(product.stock, product.unit)}</div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                grid.innerHTML = customCard + productCards;
             } catch (error) {
                 console.error('Error al cargar productos:', error);
             }
         }
 
-        // Manejar cambio de producto base
-        function onProductoBaseChange() {
-            const select = document.getElementById('pedidoProductoBase');
-            const customInput = document.getElementById('pedidoProductoBaseCustom');
-            const materialGroup = document.getElementById('materialProductoGroup');
-            const fotoPreview = document.getElementById('pedidoProductoFotoPreview');
-            const fotoImg = document.getElementById('pedidoProductoFotoImg');
-            const selectedValue = select.value;
+        // Seleccionar producto del grid
+        function seleccionarProductoBase(id, nombre, precio, foto, fotoUrl) {
+            // Guardar datos
+            document.getElementById('pedidoProductoBase').value = id;
+            document.getElementById('pedidoPrecioBase').value = precio;
+            document.getElementById('pedidoProductoFoto').value = foto;
 
-            if (selectedValue === '__custom__') {
-                // Mostrar input personalizado y material
-                customInput.style.display = 'block';
-                customInput.required = true;
-                materialGroup.style.display = 'block';
-                fotoPreview.style.display = 'none';
-            } else if (selectedValue === '') {
-                // No hay selección
-                customInput.style.display = 'none';
-                customInput.required = false;
-                customInput.value = '';
-                materialGroup.style.display = 'none';
-                fotoPreview.style.display = 'none';
-                document.getElementById('pedidoPrecioBase').value = 0;
-                document.getElementById('pedidoProductoFoto').value = '';
+            // Ocultar grid y mostrar producto seleccionado
+            document.getElementById('productosBaseGrid').parentElement.style.display = 'none';
+            document.getElementById('productoBaseSeleccionado').style.display = 'block';
+            document.getElementById('pedidoProductoBaseCustomGroup').style.display = 'none';
+            document.getElementById('materialProductoGroup').style.display = 'none';
+
+            // Mostrar info del producto seleccionado
+            const img = document.getElementById('productoSeleccionadoImg');
+            if (fotoUrl) {
+                img.src = fotoUrl;
+                img.style.display = 'block';
             } else {
-                // Producto seleccionado del inventario
-                customInput.style.display = 'none';
-                customInput.required = false;
-                customInput.value = '';
-                materialGroup.style.display = 'none';
-
-                // Obtener datos del producto
-                const selectedOption = select.options[select.selectedIndex];
-                const precioBase = parseFloat(selectedOption.dataset.price) || 0;
-                const foto = selectedOption.dataset.photo || '';
-
-                // Autocompletar precio y foto
-                document.getElementById('pedidoPrecioBase').value = precioBase;
-                document.getElementById('pedidoProductoFoto').value = foto;
-
-                // Mostrar vista previa de la foto si existe
-                if (foto) {
-                    fotoImg.src = foto;
-                    fotoPreview.style.display = 'block';
-                } else {
-                    fotoPreview.style.display = 'none';
-                }
-
-                // Recalcular total
-                calcularTotal();
+                img.style.display = 'none';
             }
+            document.getElementById('productoSeleccionadoNombre').textContent = nombre;
+            document.getElementById('productoSeleccionadoPrecio').textContent = formatGuaranies(precio);
+
+            // Recalcular total
+            calcularTotal();
+        }
+
+        // Seleccionar producto personalizado
+        function seleccionarProductoPersonalizado() {
+            // Guardar valores
+            document.getElementById('pedidoProductoBase').value = '__custom__';
+            document.getElementById('pedidoPrecioBase').value = 0;
+            document.getElementById('pedidoProductoFoto').value = '';
+
+            // Ocultar grid y mostrar input personalizado
+            document.getElementById('productosBaseGrid').parentElement.style.display = 'none';
+            document.getElementById('productoBaseSeleccionado').style.display = 'none';
+            document.getElementById('pedidoProductoBaseCustomGroup').style.display = 'block';
+            document.getElementById('materialProductoGroup').style.display = 'block';
+
+            // Focus en el input
+            setTimeout(() => {
+                document.getElementById('pedidoProductoBaseCustom').focus();
+            }, 100);
+        }
+
+        // Limpiar selección de producto
+        function limpiarProductoBase() {
+            document.getElementById('pedidoProductoBase').value = '';
+            document.getElementById('pedidoPrecioBase').value = 0;
+            document.getElementById('pedidoProductoFoto').value = '';
+            document.getElementById('pedidoProductoBaseCustom').value = '';
+
+            // Mostrar grid nuevamente
+            document.getElementById('productosBaseGrid').parentElement.style.display = 'block';
+            document.getElementById('productoBaseSeleccionado').style.display = 'none';
+            document.getElementById('pedidoProductoBaseCustomGroup').style.display = 'none';
+            document.getElementById('materialProductoGroup').style.display = 'none';
+            document.getElementById('searchProductoBase').value = '';
+
+            // Limpiar filtro
+            filterProductosBase();
+
+            // Recalcular total
+            calcularTotal();
+        }
+
+        // Filtrar productos en el grid
+        function filterProductosBase() {
+            const searchTerm = document.getElementById('searchProductoBase').value.toLowerCase();
+            const cards = document.querySelectorAll('.producto-base-card');
+
+            cards.forEach(card => {
+                const searchData = card.dataset.search || '';
+                if (searchData.includes(searchTerm)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
         }
 
         // Obtener nombre del producto base (para guardar)
         function getPedidoProductoBaseNombre() {
-            const select = document.getElementById('pedidoProductoBase');
+            const hiddenInput = document.getElementById('pedidoProductoBase');
             const customInput = document.getElementById('pedidoProductoBaseCustom');
-            const selectedValue = select.value;
+            const selectedValue = hiddenInput.value;
 
             if (selectedValue === '__custom__') {
                 return customInput.value;
             } else if (selectedValue === '') {
                 return '';
             } else {
-                const selectedOption = select.options[select.selectedIndex];
-                return selectedOption.dataset.name || selectedOption.textContent;
+                // Obtener nombre del texto mostrado
+                return document.getElementById('productoSeleccionadoNombre').textContent;
             }
         }
 
@@ -5763,20 +5803,45 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
 
                     <!-- Detalles del Producto -->
                     <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
-                        <h3 style="margin: 0 0 15px 0; color: #667eea;">📦 Detalles del Producto</h3>
-                        <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                            <div class="form-group">
-                                <label>Producto Base</label>
-                                <select id="pedidoProductoBase" onchange="onProductoBaseChange()" style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px;">
-                                    <option value="">Seleccionar producto...</option>
-                                    <option value="__custom__">➕ Producto personalizado</option>
-                                </select>
-                                <input type="text" id="pedidoProductoBaseCustom" placeholder="Nombre del producto" style="display: none; margin-top: 10px; width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px;" oninput="capitalizeFirst(this)">
+                        <h3 style="margin: 0 0 15px 0; color: #667eea;">📦 Seleccionar Producto Base</h3>
+
+                        <!-- Grid de productos visuales -->
+                        <div style="margin-bottom: 20px;">
+                            <input type="text" id="searchProductoBase" placeholder="🔍 Buscar producto..." style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px; margin-bottom: 15px;" oninput="filterProductosBase()">
+
+                            <div id="productosBaseGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; max-height: 400px; overflow-y: auto; padding: 10px; background: white; border-radius: 8px;">
+                                <!-- Se llenará dinámicamente -->
                             </div>
-                            <div class="form-group">
-                                <label>Cantidad *</label>
-                                <input type="number" id="pedidoCantidad" value="1" min="1" required onchange="calcularTotal()">
+                        </div>
+
+                        <!-- Input oculto para guardar el producto seleccionado -->
+                        <input type="hidden" id="pedidoProductoBase">
+                        <input type="hidden" id="pedidoPrecioBase">
+                        <input type="hidden" id="pedidoProductoFoto">
+
+                        <!-- Producto seleccionado -->
+                        <div id="productoBaseSeleccionado" style="display: none; padding: 15px; background: white; border-radius: 8px; border: 2px solid #667eea; margin-bottom: 15px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div style="display: flex; gap: 15px; align-items: center;">
+                                    <img id="productoSeleccionadoImg" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px;">
+                                    <div>
+                                        <div id="productoSeleccionadoNombre" style="font-weight: bold; color: #333;"></div>
+                                        <div id="productoSeleccionadoPrecio" style="font-size: 14px; color: #667eea;"></div>
+                                    </div>
+                                </div>
+                                <button type="button" onclick="limpiarProductoBase()" style="background: #dc3545; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer;">✖ Cambiar</button>
                             </div>
+                        </div>
+
+                        <!-- Input personalizado -->
+                        <div id="pedidoProductoBaseCustomGroup" style="display: none; margin-bottom: 15px;">
+                            <input type="text" id="pedidoProductoBaseCustom" placeholder="Nombre del producto personalizado" style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px;" oninput="capitalizeFirst(this)">
+                        </div>
+
+                        <!-- Cantidad -->
+                        <div class="form-group">
+                            <label>Cantidad *</label>
+                            <input type="number" id="pedidoCantidad" value="1" min="1" required onchange="calcularTotal()">
                         </div>
 
                         <!-- Material del Producto (solo para personalizado) -->
@@ -5817,12 +5882,6 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
                                 <input type="text" id="pedidoColor" placeholder="Ej: Blanco, Negro, Azul" oninput="capitalizeFirst(this)">
                             </div>
                         </div>
-                        <!-- Vista previa de la foto del producto -->
-                        <div id="pedidoProductoFotoPreview" style="display: none; text-align: center; padding: 15px; background: white; border-radius: 8px; border: 2px dashed #e0e0e0;">
-                            <label style="display: block; margin-bottom: 10px; font-weight: bold; color: #667eea;">📸 Foto del Producto</label>
-                            <img id="pedidoProductoFotoImg" style="max-width: 100%; max-height: 200px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                        </div>
-                        <input type="hidden" id="pedidoProductoFoto">
                     </div>
 
                     <!-- Detalles del Diseño/Servicio -->
