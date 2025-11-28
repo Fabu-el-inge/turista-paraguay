@@ -4642,7 +4642,9 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
                 products.forEach(product => {
                     const option = document.createElement('option');
                     option.value = product.id;
-                    option.textContent = `${product.name}${product.brand ? ' - ' + product.brand : ''} (Stock: ${product.stock})`;
+                    // Agregar emoji de imagen si tiene foto
+                    const iconoFoto = product.imageUrl ? '📸 ' : '📦 ';
+                    option.textContent = `${iconoFoto}${product.name}${product.brand ? ' - ' + product.brand : ''} (₲${formatGuaranies(product.price).replace('₲ ', '')} | Stock: ${formatUnit(product.stock, product.unit)})`;
                     option.dataset.name = product.name;
                     option.dataset.price = product.price;
                     option.dataset.photo = product.imageUrl || '';
@@ -4657,17 +4659,20 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
         function onProductoBaseChange() {
             const select = document.getElementById('pedidoProductoBase');
             const customInput = document.getElementById('pedidoProductoBaseCustom');
+            const materialGroup = document.getElementById('materialProductoGroup');
             const selectedValue = select.value;
 
             if (selectedValue === '__custom__') {
-                // Mostrar input personalizado
+                // Mostrar input personalizado y material
                 customInput.style.display = 'block';
                 customInput.required = true;
+                materialGroup.style.display = 'block';
             } else if (selectedValue === '') {
                 // No hay selección
                 customInput.style.display = 'none';
                 customInput.required = false;
                 customInput.value = '';
+                materialGroup.style.display = 'none';
                 document.getElementById('pedidoPrecioBase').value = 0;
                 document.getElementById('pedidoProductoFoto').value = '';
             } else {
@@ -4675,6 +4680,7 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
                 customInput.style.display = 'none';
                 customInput.required = false;
                 customInput.value = '';
+                materialGroup.style.display = 'none';
 
                 // Obtener datos del producto
                 const selectedOption = select.options[select.selectedIndex];
@@ -4903,9 +4909,97 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
 
                 showNotification('Servicio eliminado exitosamente', 'success');
                 await loadServiciosInSelect();
+                await loadServiciosList(); // Recargar lista en modal de gestión
             } catch (error) {
                 console.error('Error al eliminar servicio:', error);
                 alert('Error al eliminar el servicio: ' + error.message);
+            }
+        }
+
+        // Abrir modal de gestión de servicios
+        async function openGestionServiciosModal() {
+            document.getElementById('gestionServiciosModal').style.display = 'flex';
+            await loadServiciosList();
+        }
+
+        // Cerrar modal de gestión de servicios
+        function closeGestionServiciosModal() {
+            document.getElementById('gestionServiciosModal').style.display = 'none';
+            document.getElementById('nuevoServicioNombre').value = '';
+        }
+
+        // Cargar lista de servicios en el modal de gestión
+        async function loadServiciosList() {
+            try {
+                const { data: servicios, error } = await supabase
+                    .from('servicios')
+                    .select('*')
+                    .eq('activo', true)
+                    .order('nombre', { ascending: true });
+
+                if (error) throw error;
+
+                const container = document.getElementById('serviciosListContainer');
+
+                if (servicios.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">No hay servicios registrados</p>';
+                    return;
+                }
+
+                container.innerHTML = servicios.map(servicio => `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; background: white; border-radius: 8px; margin-bottom: 10px; border: 1px solid #e0e0e0;">
+                        <div>
+                            <div style="font-weight: bold; color: #333;">${servicio.nombre}</div>
+                            ${servicio.descripcion ? `<div style="font-size: 12px; color: #666; margin-top: 4px;">${servicio.descripcion}</div>` : ''}
+                        </div>
+                        <button type="button" class="btn btn-danger" onclick="eliminarServicio(${servicio.id}, '${servicio.nombre.replace(/'/g, "\\'")}')" style="font-size: 12px; padding: 6px 12px;">🗑️ Eliminar</button>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error al cargar servicios:', error);
+                document.getElementById('serviciosListContainer').innerHTML = '<p style="text-align: center; color: #dc3545; padding: 20px;">Error al cargar servicios</p>';
+            }
+        }
+
+        // Agregar nuevo servicio
+        async function agregarNuevoServicio() {
+            const nombre = document.getElementById('nuevoServicioNombre').value.trim();
+
+            if (!nombre) {
+                alert('Por favor ingresa el nombre del servicio');
+                return;
+            }
+
+            try {
+                // Generar valor único a partir del nombre
+                const valor = nombre.toLowerCase()
+                    .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Quitar acentos
+                    .replace(/[^a-z0-9]+/g, '_') // Reemplazar espacios y caracteres especiales con _
+                    .replace(/^_+|_+$/g, ''); // Quitar _ al inicio y final
+
+                const { data, error } = await supabase
+                    .from('servicios')
+                    .insert([{
+                        nombre: nombre,
+                        valor: valor,
+                        descripcion: '',
+                        activo: true
+                    }])
+                    .select();
+
+                if (error) throw error;
+
+                showNotification('Servicio creado exitosamente', 'success');
+                document.getElementById('nuevoServicioNombre').value = '';
+                await loadServiciosInSelect();
+                await loadServiciosList();
+            } catch (error) {
+                console.error('Error al guardar servicio:', error);
+                if (error.code === '23505') {
+                    alert('Ya existe un servicio con ese nombre');
+                } else {
+                    alert('Error al guardar el servicio: ' + error.message);
+                }
             }
         }
 
@@ -5632,23 +5726,6 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
                             </div>
                             <div class="form-group">
                                 <label>Teléfono</label>
-                            <div class="form-group">
-                                <label>Material del Producto (opcional)</label>
-                                <select id="pedidoMaterial" style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px;">
-                                    <option value="">Seleccionar...</option>
-                                    <option value="algodon">Algodón</option>
-                                    <option value="poliester">Poliéster</option>
-                                    <option value="algodon_poliester">Algodón/Poliéster</option>
-                                    <option value="sublimable">Sublimable</option>
-                                    <option value="ceramica">Cerámica</option>
-                                    <option value="vidrio">Vidrio</option>
-                                    <option value="metal">Metal</option>
-                                    <option value="madera">Madera</option>
-                                    <option value="plastico">Plástico</option>
-                                    <option value="otro">Otro</option>
-                                </select>
-                                <input type="text" id="pedidoMaterialOtro" placeholder="Especificar material" style="display: none; margin-top: 10px; width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px;" oninput="capitalizeFirst(this)">
-                            </div>
                                 <input type="text" id="pedidoClienteTelefono" readonly style="background: #f5f5f5;">
                             </div>
                         </div>
@@ -5660,15 +5737,14 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
 
                     <!-- Tipo de Servicio -->
                     <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
-                        <h3 style="margin: 0 0 15px 0; color: #667eea;">🎨 Tipo de Servicio</h3>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <h3 style="margin: 0; color: #667eea;">🎨 Tipo de Servicio</h3>
+                            <button type="button" class="btn btn-secondary" onclick="openGestionServiciosModal()" style="font-size: 12px; padding: 8px 12px;">⚙️ Gestionar Servicios</button>
+                        </div>
                         <div class="form-group">
                             <label>Servicio *</label>
                             <select id="pedidoTipoServicio" required onchange="updateServicioFields()" style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px;">
                                 <option value="">Seleccionar servicio...</option>
-                                <option value="sublimacion">Sublimación</option>
-                                <option value="grabado_laser">Grabado Láser</option>
-                                <option value="bordado">Bordado</option>
-                                <option value="otro">Otro</option>
                             </select>
                         </div>
                     </div>
@@ -5689,6 +5765,25 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
                                 <label>Cantidad *</label>
                                 <input type="number" id="pedidoCantidad" value="1" min="1" required onchange="calcularTotal()">
                             </div>
+                        </div>
+
+                        <!-- Material del Producto (solo para personalizado) -->
+                        <div id="materialProductoGroup" class="form-group" style="display: none;">
+                            <label>Material del Producto</label>
+                            <select id="pedidoMaterial" style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px;">
+                                <option value="">Seleccionar...</option>
+                                <option value="algodon">Algodón</option>
+                                <option value="poliester">Poliéster</option>
+                                <option value="algodon_poliester">Algodón/Poliéster</option>
+                                <option value="sublimable">Sublimable</option>
+                                <option value="ceramica">Cerámica</option>
+                                <option value="vidrio">Vidrio</option>
+                                <option value="metal">Metal</option>
+                                <option value="madera">Madera</option>
+                                <option value="plastico">Plástico</option>
+                                <option value="otro">Otro</option>
+                            </select>
+                            <input type="text" id="pedidoMaterialOtro" placeholder="Especificar material" style="display: none; margin-top: 10px; width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px;" oninput="capitalizeFirst(this)">
                         </div>
                         <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                             <div class="form-group">
@@ -5857,6 +5952,34 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
             </div>
             <div class="modal-body" id="detallePedidoContent">
                 <!-- Se llenará dinámicamente -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Gestión de Servicios -->
+    <div id="gestionServiciosModal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h2>⚙️ Gestión de Servicios</h2>
+                <span class="close-btn" onclick="closeGestionServiciosModal()">✖</span>
+            </div>
+            <div class="modal-body">
+                <!-- Formulario para agregar servicio -->
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+                    <h3 style="margin: 0 0 15px 0;">➕ Agregar Nuevo Servicio</h3>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" id="nuevoServicioNombre" placeholder="Nombre del servicio (ej: Serigrafía)" style="flex: 1; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px;">
+                        <button type="button" class="btn btn-primary" onclick="agregarNuevoServicio()">Agregar</button>
+                    </div>
+                </div>
+
+                <!-- Lista de servicios -->
+                <div>
+                    <h3 style="margin: 0 0 15px 0;">📋 Servicios Actuales</h3>
+                    <div id="serviciosListContainer" style="max-height: 400px; overflow-y: auto;">
+                        <!-- Se llenará dinámicamente -->
+                    </div>
+                </div>
             </div>
         </div>
     </div>
