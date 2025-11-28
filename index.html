@@ -6008,9 +6008,22 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
                                 <input type="number" id="pedidoCantidadColores" value="1" min="1" max="10" onchange="calcularTotal()">
                             </div>
                         </div>
-                        <div class="form-group" id="areaGrabadoGroup" style="display: none;">
-                            <label>Área de Grabado</label>
-                            <input type="text" id="pedidoAreaGrabado" placeholder="Ej: 10x10cm">
+                        <div id="areaGrabadoGroup" style="display: none;">
+                            <div class="form-group">
+                                <label>Área de Grabado</label>
+                                <input type="text" id="pedidoAreaGrabado" placeholder="Ej: 10x10cm">
+                            </div>
+                            <!-- Precios para Grabado Láser -->
+                            <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
+                                <div class="form-group">
+                                    <label>💵 Precio Minorista (₲)</label>
+                                    <input type="number" id="pedidoPrecioMinorista" value="0" min="0" step="1000" onchange="calcularTotal()" placeholder="Precio para venta individual">
+                                </div>
+                                <div class="form-group">
+                                    <label>📦 Precio Mayorista (₲)</label>
+                                    <input type="number" id="pedidoPrecioMayorista" value="0" min="0" step="1000" onchange="calcularTotal()" placeholder="Precio para venta por cantidad">
+                                </div>
+                            </div>
                         </div>
                     </div>
 
