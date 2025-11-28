@@ -5169,6 +5169,70 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
             loadMaterialesList();
         }
 
+        // === GESTIÓN DE PRECIOS DE GRABADO LÁSER ===
+
+        // Obtener precios configurados
+        function getPreciosGrabadoLaser() {
+            const preciosDefault = { minorista: 15000, mayorista: 10000 };
+            const preciosGuardados = localStorage.getItem('preciosGrabadoLaser');
+            return preciosGuardados ? JSON.parse(preciosGuardados) : preciosDefault;
+        }
+
+        // Abrir modal de gestión de precios
+        function openGestionPreciosGrabadoModal() {
+            const modal = document.getElementById('gestionPreciosGrabadoModal');
+            const precios = getPreciosGrabadoLaser();
+
+            // Cargar precios actuales en el formulario
+            document.getElementById('configPrecioMinorista').value = precios.minorista;
+            document.getElementById('configPrecioMayorista').value = precios.mayorista;
+
+            // Actualizar vista previa
+            updatePreciosPreview();
+
+            modal.style.display = 'flex';
+        }
+
+        // Cerrar modal de gestión de precios
+        function closeGestionPreciosGrabadoModal() {
+            document.getElementById('gestionPreciosGrabadoModal').style.display = 'none';
+        }
+
+        // Actualizar vista previa de precios
+        function updatePreciosPreview() {
+            const minorista = document.getElementById('configPrecioMinorista').value || 0;
+            const mayorista = document.getElementById('configPrecioMayorista').value || 0;
+
+            document.getElementById('previewMinorista').textContent = formatGuaranies(parseInt(minorista));
+            document.getElementById('previewMayorista').textContent = formatGuaranies(parseInt(mayorista));
+        }
+
+        // Guardar precios de Grabado Láser
+        function guardarPreciosGrabado() {
+            const minorista = parseInt(document.getElementById('configPrecioMinorista').value);
+            const mayorista = parseInt(document.getElementById('configPrecioMayorista').value);
+
+            if (isNaN(minorista) || minorista < 0) {
+                alert('Por favor ingresa un precio minorista válido');
+                return;
+            }
+
+            if (isNaN(mayorista) || mayorista < 0) {
+                alert('Por favor ingresa un precio mayorista válido');
+                return;
+            }
+
+            const precios = {
+                minorista: minorista,
+                mayorista: mayorista
+            };
+
+            localStorage.setItem('preciosGrabadoLaser', JSON.stringify(precios));
+
+            alert('✅ Precios guardados exitosamente');
+            closeGestionPreciosGrabadoModal();
+        }
+
         // Actualizar campos según tipo de servicio
         function updateServicioFields() {
             const servicio = document.getElementById('pedidoTipoServicio').value;
@@ -5187,9 +5251,10 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
                     coloresGroup.style.display = 'none';
                     areaGrabadoGroup.style.display = 'block';
 
-                    // Autocompletar precios predefinidos para Grabado Láser
-                    document.getElementById('pedidoPrecioMinorista').value = 15000;
-                    document.getElementById('pedidoPrecioMayorista').value = 10000;
+                    // Autocompletar precios predefinidos para Grabado Láser desde localStorage
+                    const precios = getPreciosGrabadoLaser();
+                    document.getElementById('pedidoPrecioMinorista').value = precios.minorista;
+                    document.getElementById('pedidoPrecioMayorista').value = precios.mayorista;
 
                     // Recalcular total
                     calcularTotal();
@@ -6021,14 +6086,20 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
                                 <input type="text" id="pedidoAreaGrabado" placeholder="Ej: 10x10cm">
                             </div>
                             <!-- Precios para Grabado Láser -->
-                            <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
-                                <div class="form-group">
-                                    <label>💵 Precio Minorista (₲)</label>
-                                    <input type="number" id="pedidoPrecioMinorista" value="0" min="0" step="1000" onchange="calcularTotal()" placeholder="Precio para venta individual">
+                            <div style="margin-top: 15px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                    <label style="margin: 0; font-weight: bold;">⚡ Precios de Grabado Láser</label>
+                                    <button type="button" class="btn btn-secondary" onclick="openGestionPreciosGrabadoModal()" style="font-size: 11px; padding: 6px 10px;">⚙️ Gestionar</button>
                                 </div>
-                                <div class="form-group">
-                                    <label>📦 Precio Mayorista (₲)</label>
-                                    <input type="number" id="pedidoPrecioMayorista" value="0" min="0" step="1000" onchange="calcularTotal()" placeholder="Precio para venta por cantidad">
+                                <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                                    <div class="form-group">
+                                        <label>💵 Precio Minorista (₲)</label>
+                                        <input type="number" id="pedidoPrecioMinorista" value="0" min="0" step="1000" onchange="calcularTotal()" placeholder="Precio para venta individual">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>📦 Precio Mayorista (₲)</label>
+                                        <input type="number" id="pedidoPrecioMayorista" value="0" min="0" step="1000" onchange="calcularTotal()" placeholder="Precio para venta por cantidad">
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -6204,6 +6275,53 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
                     <h3 style="margin: 0 0 15px 0;">📋 Materiales Actuales</h3>
                     <div id="materialesListContainer" style="max-height: 400px; overflow-y: auto;">
                         <!-- Se llenará dinámicamente -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Gestión de Precios de Grabado Láser -->
+    <div id="gestionPreciosGrabadoModal" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h2>⚡ Gestión de Precios - Grabado Láser</h2>
+                <span class="close-btn" onclick="closeGestionPreciosGrabadoModal()">✖</span>
+            </div>
+            <div class="modal-body">
+                <!-- Configuración de precios -->
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 10px;">
+                    <h3 style="margin: 0 0 15px 0;">💰 Configurar Precios Predeterminados</h3>
+                    <p style="color: #666; font-size: 13px; margin-bottom: 20px;">
+                        Estos precios se aplicarán automáticamente cuando selecciones el servicio de Grabado Láser.
+                    </p>
+
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label>💵 Precio Minorista (₲)</label>
+                        <input type="number" id="configPrecioMinorista" value="15000" min="0" step="1000" oninput="updatePreciosPreview()" style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px;">
+                        <small style="color: #666; font-size: 11px;">Precio para ventas individuales</small>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label>📦 Precio Mayorista (₲)</label>
+                        <input type="number" id="configPrecioMayorista" value="10000" min="0" step="1000" oninput="updatePreciosPreview()" style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px;">
+                        <small style="color: #666; font-size: 11px;">Precio para ventas por cantidad</small>
+                    </div>
+
+                    <button type="button" class="btn btn-success" onclick="guardarPreciosGrabado()" style="width: 100%;">💾 Guardar Configuración</button>
+                </div>
+
+                <!-- Vista previa -->
+                <div style="background: #e8f5e9; padding: 15px; border-radius: 8px; margin-top: 20px; border-left: 4px solid #28a745;">
+                    <h4 style="margin: 0 0 10px 0; color: #28a745; font-size: 14px;">ℹ️ Vista Previa</h4>
+                    <div style="font-size: 13px; color: #555;">
+                        <div style="margin-bottom: 5px;">
+                            • Al seleccionar <strong>Grabado Láser</strong>, se aplicará:
+                        </div>
+                        <div style="margin-left: 20px; margin-top: 5px;">
+                            <div>→ Minorista: <span id="previewMinorista" style="font-weight: bold; color: #28a745;">₲15.000</span></div>
+                            <div>→ Mayorista: <span id="previewMayorista" style="font-weight: bold; color: #28a745;">₲10.000</span></div>
+                        </div>
                     </div>
                 </div>
             </div>
