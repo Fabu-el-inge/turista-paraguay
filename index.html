@@ -4660,6 +4660,8 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
             const select = document.getElementById('pedidoProductoBase');
             const customInput = document.getElementById('pedidoProductoBaseCustom');
             const materialGroup = document.getElementById('materialProductoGroup');
+            const fotoPreview = document.getElementById('pedidoProductoFotoPreview');
+            const fotoImg = document.getElementById('pedidoProductoFotoImg');
             const selectedValue = select.value;
 
             if (selectedValue === '__custom__') {
@@ -4667,12 +4669,14 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
                 customInput.style.display = 'block';
                 customInput.required = true;
                 materialGroup.style.display = 'block';
+                fotoPreview.style.display = 'none';
             } else if (selectedValue === '') {
                 // No hay selección
                 customInput.style.display = 'none';
                 customInput.required = false;
                 customInput.value = '';
                 materialGroup.style.display = 'none';
+                fotoPreview.style.display = 'none';
                 document.getElementById('pedidoPrecioBase').value = 0;
                 document.getElementById('pedidoProductoFoto').value = '';
             } else {
@@ -4690,6 +4694,14 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
                 // Autocompletar precio y foto
                 document.getElementById('pedidoPrecioBase').value = precioBase;
                 document.getElementById('pedidoProductoFoto').value = foto;
+
+                // Mostrar vista previa de la foto si existe
+                if (foto) {
+                    fotoImg.src = foto;
+                    fotoPreview.style.display = 'block';
+                } else {
+                    fotoPreview.style.display = 'none';
+                }
 
                 // Recalcular total
                 calcularTotal();
@@ -5805,10 +5817,12 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
                                 <input type="text" id="pedidoColor" placeholder="Ej: Blanco, Negro, Azul" oninput="capitalizeFirst(this)">
                             </div>
                         </div>
-                        <div class="form-group">
-                            <label>Foto del Producto (URL)</label>
-                            <input type="url" id="pedidoProductoFoto" placeholder="https://...">
+                        <!-- Vista previa de la foto del producto -->
+                        <div id="pedidoProductoFotoPreview" style="display: none; text-align: center; padding: 15px; background: white; border-radius: 8px; border: 2px dashed #e0e0e0;">
+                            <label style="display: block; margin-bottom: 10px; font-weight: bold; color: #667eea;">📸 Foto del Producto</label>
+                            <img id="pedidoProductoFotoImg" style="max-width: 100%; max-height: 200px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
                         </div>
+                        <input type="hidden" id="pedidoProductoFoto">
                     </div>
 
                     <!-- Detalles del Diseño/Servicio -->
