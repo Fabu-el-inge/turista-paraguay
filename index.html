@@ -5233,6 +5233,151 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
             closeGestionPreciosGrabadoModal();
         }
 
+        // === GESTIÓN DE TIPOS DE GRABADO ===
+
+        // Obtener tipos de grabado configurados
+        function getTiposGrabado() {
+            const tiposDefault = [
+                { nombre: 'Nombre', precioMinorista: 20000, precioMayorista: 15000 },
+                { nombre: 'Nombre y Apellido', precioMinorista: 35000, precioMayorista: 25000 }
+            ];
+            const tiposGuardados = localStorage.getItem('tiposGrabado');
+            return tiposGuardados ? JSON.parse(tiposGuardados) : tiposDefault;
+        }
+
+        // Cargar tipos de grabado en el select
+        function loadTiposGrabadoInSelect() {
+            const select = document.getElementById('pedidoTipoGrabado');
+            const tipos = getTiposGrabado();
+
+            select.innerHTML = '<option value="">Seleccionar tipo...</option>';
+            tipos.forEach((tipo, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = `${tipo.nombre} - Min: ${formatGuaranies(tipo.precioMinorista)} / May: ${formatGuaranies(tipo.precioMayorista)}`;
+                select.appendChild(option);
+            });
+        }
+
+        // Actualizar precios cuando se selecciona un tipo de grabado
+        function updatePreciosPorTipoGrabado() {
+            const select = document.getElementById('pedidoTipoGrabado');
+            const index = select.value;
+
+            if (index === '') {
+                return;
+            }
+
+            const tipos = getTiposGrabado();
+            const tipo = tipos[index];
+
+            if (tipo) {
+                document.getElementById('pedidoPrecioMinorista').value = tipo.precioMinorista;
+                document.getElementById('pedidoPrecioMayorista').value = tipo.precioMayorista;
+                calcularTotal();
+            }
+        }
+
+        // Abrir modal de gestión de tipos de grabado
+        function openGestionTiposGrabadoModal() {
+            document.getElementById('gestionTiposGrabadoModal').style.display = 'flex';
+            loadTiposGrabadoList();
+        }
+
+        // Cerrar modal de gestión de tipos de grabado
+        function closeGestionTiposGrabadoModal() {
+            document.getElementById('gestionTiposGrabadoModal').style.display = 'none';
+            document.getElementById('nuevoTipoGrabadoNombre').value = '';
+            document.getElementById('nuevoTipoGrabadoPrecioMinorista').value = 0;
+            document.getElementById('nuevoTipoGrabadoPrecioMayorista').value = 0;
+        }
+
+        // Cargar lista de tipos de grabado en el modal
+        function loadTiposGrabadoList() {
+            const tipos = getTiposGrabado();
+            const container = document.getElementById('tiposGrabadoListContainer');
+
+            if (tipos.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">No hay tipos de grabado registrados</p>';
+                return;
+            }
+
+            container.innerHTML = tipos.map((tipo, index) => `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; background: white; border-radius: 8px; margin-bottom: 10px; border: 1px solid #e0e0e0;">
+                    <div style="flex: 1;">
+                        <div style="font-weight: bold; color: #333; font-size: 15px; margin-bottom: 5px;">⚡ ${tipo.nombre}</div>
+                        <div style="display: flex; gap: 20px; font-size: 13px; color: #666;">
+                            <span>💵 Minorista: <strong style="color: #28a745;">${formatGuaranies(tipo.precioMinorista)}</strong></span>
+                            <span>📦 Mayorista: <strong style="color: #667eea;">${formatGuaranies(tipo.precioMayorista)}</strong></span>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-danger" onclick="eliminarTipoGrabado(${index})" style="font-size: 12px; padding: 6px 12px;">🗑️ Eliminar</button>
+                </div>
+            `).join('');
+        }
+
+        // Agregar nuevo tipo de grabado
+        function agregarNuevoTipoGrabado() {
+            const nombre = document.getElementById('nuevoTipoGrabadoNombre').value.trim();
+            const precioMinorista = parseInt(document.getElementById('nuevoTipoGrabadoPrecioMinorista').value);
+            const precioMayorista = parseInt(document.getElementById('nuevoTipoGrabadoPrecioMayorista').value);
+
+            if (!nombre) {
+                alert('Por favor ingresa el nombre del tipo de grabado');
+                return;
+            }
+
+            if (isNaN(precioMinorista) || precioMinorista < 0) {
+                alert('Por favor ingresa un precio minorista válido');
+                return;
+            }
+
+            if (isNaN(precioMayorista) || precioMayorista < 0) {
+                alert('Por favor ingresa un precio mayorista válido');
+                return;
+            }
+
+            const tipos = getTiposGrabado();
+
+            // Verificar si ya existe
+            if (tipos.some(t => t.nombre.toLowerCase() === nombre.toLowerCase())) {
+                alert('Ya existe un tipo de grabado con ese nombre');
+                return;
+            }
+
+            tipos.push({
+                nombre: nombre,
+                precioMinorista: precioMinorista,
+                precioMayorista: precioMayorista
+            });
+
+            localStorage.setItem('tiposGrabado', JSON.stringify(tipos));
+
+            alert('✅ Tipo de grabado creado exitosamente');
+            document.getElementById('nuevoTipoGrabadoNombre').value = '';
+            document.getElementById('nuevoTipoGrabadoPrecioMinorista').value = 0;
+            document.getElementById('nuevoTipoGrabadoPrecioMayorista').value = 0;
+            loadTiposGrabadoInSelect();
+            loadTiposGrabadoList();
+        }
+
+        // Eliminar tipo de grabado
+        function eliminarTipoGrabado(index) {
+            const tipos = getTiposGrabado();
+            const tipo = tipos[index];
+
+            if (!confirm(`¿Estás seguro de eliminar el tipo "${tipo.nombre}"?`)) {
+                return;
+            }
+
+            tipos.splice(index, 1);
+            localStorage.setItem('tiposGrabado', JSON.stringify(tipos));
+
+            alert('✅ Tipo de grabado eliminado exitosamente');
+            loadTiposGrabadoInSelect();
+            loadTiposGrabadoList();
+        }
+
         // Actualizar campos según tipo de servicio
         function updateServicioFields() {
             const servicio = document.getElementById('pedidoTipoServicio').value;
@@ -5250,6 +5395,9 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
                 } else if (servicio === 'grabado_laser') {
                     coloresGroup.style.display = 'none';
                     areaGrabadoGroup.style.display = 'block';
+
+                    // Cargar tipos de grabado en el select
+                    loadTiposGrabadoInSelect();
 
                     // Autocompletar precios predefinidos para Grabado Láser desde localStorage
                     const precios = getPreciosGrabadoLaser();
@@ -6081,15 +6229,26 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
                             </div>
                         </div>
                         <div id="areaGrabadoGroup" style="display: none;">
+                            <!-- Tipo de Grabado -->
+                            <div class="form-group">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                    <label style="margin: 0;">Tipo de Grabado *</label>
+                                    <button type="button" class="btn btn-secondary" onclick="openGestionTiposGrabadoModal()" style="font-size: 11px; padding: 6px 10px;">⚙️ Gestionar</button>
+                                </div>
+                                <select id="pedidoTipoGrabado" onchange="updatePreciosPorTipoGrabado()" style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px;">
+                                    <option value="">Seleccionar tipo...</option>
+                                </select>
+                            </div>
+
                             <div class="form-group">
                                 <label>Área de Grabado</label>
                                 <input type="text" id="pedidoAreaGrabado" placeholder="Ej: 10x10cm">
                             </div>
+
                             <!-- Precios para Grabado Láser -->
                             <div style="margin-top: 15px;">
                                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                                     <label style="margin: 0; font-weight: bold;">⚡ Precios de Grabado Láser</label>
-                                    <button type="button" class="btn btn-secondary" onclick="openGestionPreciosGrabadoModal()" style="font-size: 11px; padding: 6px 10px;">⚙️ Gestionar</button>
                                 </div>
                                 <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                                     <div class="form-group">
@@ -6322,6 +6481,45 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
                             <div>→ Minorista: <span id="previewMinorista" style="font-weight: bold; color: #28a745;">₲15.000</span></div>
                             <div>→ Mayorista: <span id="previewMayorista" style="font-weight: bold; color: #28a745;">₲10.000</span></div>
                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Gestión de Tipos de Grabado -->
+    <div id="gestionTiposGrabadoModal" class="modal">
+        <div class="modal-content" style="max-width: 700px;">
+            <div class="modal-header">
+                <h2>⚙️ Gestión de Tipos de Grabado</h2>
+                <span class="close-btn" onclick="closeGestionTiposGrabadoModal()">✖</span>
+            </div>
+            <div class="modal-body">
+                <!-- Formulario para agregar tipo de grabado -->
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+                    <h3 style="margin: 0 0 15px 0;">➕ Agregar Nuevo Tipo de Grabado</h3>
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label>Nombre del Tipo (ej: Nombre, Nombre y Apellido, Frase Corta)</label>
+                        <input type="text" id="nuevoTipoGrabadoNombre" placeholder="Ej: Nombre y Apellido" style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px;">
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                        <div class="form-group">
+                            <label>💵 Precio Minorista (₲)</label>
+                            <input type="number" id="nuevoTipoGrabadoPrecioMinorista" value="0" min="0" step="1000" placeholder="Ej: 20000" style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px;">
+                        </div>
+                        <div class="form-group">
+                            <label>📦 Precio Mayorista (₲)</label>
+                            <input type="number" id="nuevoTipoGrabadoPrecioMayorista" value="0" min="0" step="1000" placeholder="Ej: 15000" style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px;">
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="agregarNuevoTipoGrabado()" style="width: 100%;">➕ Agregar Tipo</button>
+                </div>
+
+                <!-- Lista de tipos de grabado -->
+                <div>
+                    <h3 style="margin: 0 0 15px 0;">📋 Tipos de Grabado Actuales</h3>
+                    <div id="tiposGrabadoListContainer" style="max-height: 400px; overflow-y: auto;">
+                        <!-- Se llenará dinámicamente -->
                     </div>
                 </div>
             </div>
