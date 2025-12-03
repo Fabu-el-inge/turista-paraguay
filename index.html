@@ -4716,8 +4716,9 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
             document.getElementById('productoBaseSelectorText').textContent = nombre;
             document.getElementById('productoBaseSelectorText').style.color = '#333';
 
-            // Ocultar input personalizado
+            // Ocultar input personalizado y área de foto
             document.getElementById('pedidoProductoBaseCustom').style.display = 'none';
+            document.getElementById('pedidoFotoUploadArea').style.display = 'none';
             document.getElementById('materialProductoGroup').style.display = 'none';
 
             // Cerrar dropdown
@@ -4738,8 +4739,9 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
             document.getElementById('productoBaseSelectorText').textContent = 'Producto Personalizado';
             document.getElementById('productoBaseSelectorText').style.color = '#667eea';
 
-            // Mostrar input personalizado
+            // Mostrar input personalizado y área de foto
             document.getElementById('pedidoProductoBaseCustom').style.display = 'block';
+            document.getElementById('pedidoFotoUploadArea').style.display = 'block';
             document.getElementById('materialProductoGroup').style.display = 'block';
 
             // Cerrar dropdown
@@ -4765,6 +4767,159 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
                     item.style.display = 'none';
                 }
             });
+        }
+
+        // === FUNCIONES DE CARGA DE FOTO PARA PEDIDOS ===
+
+        let selectedPedidoImageFile = null;
+
+        // Manejar selección de archivo
+        function handlePedidoImageSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // Validar tamaño (5MB máximo)
+            if (file.size > 5 * 1024 * 1024) {
+                alert('❌ La imagen es muy grande. Máximo 5MB.');
+                return;
+            }
+
+            // Validar formato
+            if (!file.type.match('image/(jpeg|jpg|png|webp)')) {
+                alert('❌ Formato no válido. Usa JPG, PNG o WEBP.');
+                return;
+            }
+
+            selectedPedidoImageFile = file;
+
+            // Mostrar preview
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                document.getElementById('pedidoPreviewImg').src = e.target.result;
+                document.getElementById('pedidoImagePreview').style.display = 'block';
+                document.getElementById('pedidoProductoFoto').value = e.target.result; // Guardar base64
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Manejar drop de archivo
+        function handlePedidoDrop(event) {
+            event.preventDefault();
+            event.stopPropagation();
+
+            // Restaurar estilo
+            event.target.style.background = '#f9f9f9';
+            event.target.style.borderColor = '#667eea';
+
+            const files = event.dataTransfer.files;
+            if (files.length > 0) {
+                const file = files[0];
+
+                // Validar que sea imagen
+                if (!file.type.match('image.*')) {
+                    alert('❌ Por favor arrastra una imagen');
+                    return;
+                }
+
+                // Validar tamaño (5MB máximo)
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('❌ La imagen es muy grande. Máximo 5MB.');
+                    return;
+                }
+
+                selectedPedidoImageFile = file;
+
+                // Mostrar preview
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    document.getElementById('pedidoPreviewImg').src = e.target.result;
+                    document.getElementById('pedidoImagePreview').style.display = 'block';
+                    document.getElementById('pedidoProductoFoto').value = e.target.result; // Guardar base64
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Tomar foto con cámara
+        async function takePedidoPhoto() {
+            try {
+                const constraints = {
+                    video: {
+                        facingMode: 'environment',
+                        width: { ideal: 1920 },
+                        height: { ideal: 1080 }
+                    }
+                };
+
+                const stream = await navigator.mediaDevices.getUserMedia(constraints);
+
+                // Crear modal temporal para la cámara
+                const cameraModal = document.createElement('div');
+                cameraModal.className = 'modal';
+                cameraModal.style.display = 'flex';
+                cameraModal.innerHTML = `
+                    <div class="modal-content" style="max-width: 600px;">
+                        <div class="modal-header">
+                            <h3 style="margin:0;">📸 Tomar Fotografía</h3>
+                        </div>
+                        <div class="modal-body" style="text-align: center;">
+                            <video id="pedidoCameraVideo" autoplay playsinline style="width: 100%; max-width: 500px; border-radius: 8px; background: #000;"></video>
+                            <div style="display: flex; gap: 10px; margin-top: 15px; justify-content: center;">
+                                <button type="button" class="btn btn-success" onclick="capturePedidoPhoto()">📸 Capturar</button>
+                                <button type="button" class="btn btn-danger" onclick="closePedidoCamera()">❌ Cancelar</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(cameraModal);
+                window.pedidoCameraModal = cameraModal;
+                window.pedidoCameraStream = stream;
+
+                const video = document.getElementById('pedidoCameraVideo');
+                video.srcObject = stream;
+            } catch (error) {
+                alert('❌ No se pudo acceder a la cámara: ' + error.message);
+            }
+        }
+
+        // Capturar foto
+        function capturePedidoPhoto() {
+            const video = document.getElementById('pedidoCameraVideo');
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            canvas.getContext('2d').drawImage(video, 0, 0);
+
+            canvas.toBlob((blob) => {
+                selectedPedidoImageFile = new File([blob], 'photo.jpg', { type: 'image/jpeg' });
+
+                const dataUrl = canvas.toDataURL('image/jpeg');
+                document.getElementById('pedidoPreviewImg').src = dataUrl;
+                document.getElementById('pedidoImagePreview').style.display = 'block';
+                document.getElementById('pedidoProductoFoto').value = dataUrl; // Guardar base64
+
+                closePedidoCamera();
+            }, 'image/jpeg', 0.9);
+        }
+
+        // Cerrar cámara
+        function closePedidoCamera() {
+            if (window.pedidoCameraStream) {
+                window.pedidoCameraStream.getTracks().forEach(track => track.stop());
+            }
+            if (window.pedidoCameraModal) {
+                window.pedidoCameraModal.remove();
+                window.pedidoCameraModal = null;
+            }
+        }
+
+        // Limpiar imagen
+        function clearPedidoImage() {
+            selectedPedidoImageFile = null;
+            document.getElementById('pedidoPreviewImg').src = '';
+            document.getElementById('pedidoImagePreview').style.display = 'none';
+            document.getElementById('pedidoProductoFoto').value = '';
+            document.getElementById('pedidoImageInput').value = '';
         }
 
         // Obtener nombre del producto base (para guardar)
@@ -6241,6 +6396,27 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
 
                                 <!-- Input personalizado -->
                                 <input type="text" id="pedidoProductoBaseCustom" placeholder="Nombre del producto" style="display: none; margin-top: 10px; width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px;" oninput="capitalizeFirst(this)">
+
+                                <!-- Área de carga de foto para producto personalizado -->
+                                <div id="pedidoFotoUploadArea" style="display: none; margin-top: 15px;">
+                                    <label style="display: block; margin-bottom: 10px; font-weight: bold; color: #333;">📸 Foto del Producto/Diseño</label>
+                                    <div style="border: 2px dashed #667eea; border-radius: 8px; padding: 20px; background: #f9f9f9; text-align: center; cursor: pointer; transition: all 0.3s;"
+                                         ondragover="event.preventDefault(); event.stopPropagation(); this.style.background='#e8f0fe'; this.style.borderColor='#4285f4';"
+                                         ondragleave="event.preventDefault(); event.stopPropagation(); this.style.background='#f9f9f9'; this.style.borderColor='#667eea';"
+                                         ondrop="handlePedidoDrop(event)"
+                                         onclick="document.getElementById('pedidoImageInput').click()">
+                                        <p style="margin: 0; color: #666;">🖼️ Arrastra una imagen aquí o haz clic para seleccionar</p>
+                                    </div>
+                                    <div style="display: flex; gap: 10px; margin-top: 10px;">
+                                        <input type="file" id="pedidoImageInput" accept="image/*" style="display: none;" onchange="handlePedidoImageSelect(event)">
+                                        <button type="button" class="btn btn-primary" onclick="document.getElementById('pedidoImageInput').click()" style="flex: 1; font-size: 13px;">📁 Subir Archivo</button>
+                                        <button type="button" class="btn btn-primary" onclick="takePedidoPhoto()" style="flex: 1; font-size: 13px;">📷 Tomar Foto</button>
+                                    </div>
+                                    <div id="pedidoImagePreview" style="margin-top: 10px; display: none; text-align: center;">
+                                        <img id="pedidoPreviewImg" style="max-width: 200px; max-height: 200px; border-radius: 8px; border: 2px solid #ddd;">
+                                        <button type="button" class="btn btn-danger" onclick="clearPedidoImage()" style="display: block; margin: 10px auto 0; width: 200px; font-size: 12px;">🗑️ Eliminar Foto</button>
+                                    </div>
+                                </div>
                             </div>
                             <div class="form-group">
                                 <label>Cantidad *</label>
