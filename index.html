@@ -4840,45 +4840,239 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
             }
         }
 
-        // Tomar foto con cámara
+        // Tomar foto con cámara (versión completa)
+        let currentPedidoCameraMode = 'environment';
+
         async function takePedidoPhoto() {
             try {
-                const constraints = {
-                    video: {
-                        facingMode: 'environment',
-                        width: { ideal: 1920 },
-                        height: { ideal: 1080 }
-                    }
-                };
-
-                const stream = await navigator.mediaDevices.getUserMedia(constraints);
-
-                // Crear modal temporal para la cámara
-                const cameraModal = document.createElement('div');
-                cameraModal.className = 'modal';
-                cameraModal.style.display = 'flex';
-                cameraModal.innerHTML = `
-                    <div class="modal-content" style="max-width: 600px;">
-                        <div class="modal-header">
-                            <h3 style="margin:0;">📸 Tomar Fotografía</h3>
-                        </div>
-                        <div class="modal-body" style="text-align: center;">
-                            <video id="pedidoCameraVideo" autoplay playsinline style="width: 100%; max-width: 500px; border-radius: 8px; background: #000;"></video>
-                            <div style="display: flex; gap: 10px; margin-top: 15px; justify-content: center;">
-                                <button type="button" class="btn btn-success" onclick="capturePedidoPhoto()">📸 Capturar</button>
-                                <button type="button" class="btn btn-danger" onclick="closePedidoCamera()">❌ Cancelar</button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                document.body.appendChild(cameraModal);
-                window.pedidoCameraModal = cameraModal;
-                window.pedidoCameraStream = stream;
-
-                const video = document.getElementById('pedidoCameraVideo');
-                video.srcObject = stream;
+                await startPedidoCamera();
             } catch (error) {
                 alert('❌ No se pudo acceder a la cámara: ' + error.message);
+            }
+        }
+
+        async function startPedidoCamera() {
+            // Detener stream anterior si existe
+            if (window.currentPedidoStream) {
+                window.currentPedidoStream.getTracks().forEach(track => track.stop());
+            }
+
+            // Constraints mejorados para mejor calidad
+            const constraints = {
+                video: {
+                    facingMode: currentPedidoCameraMode,
+                    width: { ideal: 1920 },
+                    height: { ideal: 1080 },
+                    aspectRatio: { ideal: 4/3 }
+                }
+            };
+
+            const stream = await navigator.mediaDevices.getUserMedia(constraints);
+
+            // Si ya existe el modal, solo actualizar el video
+            if (window.pedidoCameraModal) {
+                const video = document.getElementById('pedidoCameraVideo');
+                video.srcObject = stream;
+                window.currentPedidoStream = stream;
+                return;
+            }
+
+            // Crear modal con video mejorado y controles profesionales
+            const modal = document.createElement('div');
+            modal.innerHTML = `
+                <div style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;">
+                    <div style="background:white;padding:20px;border-radius:15px;max-width:650px;width:100%;box-shadow:0 10px 40px rgba(0,0,0,0.3);position:relative;">
+                        <button onclick="closePedidoCamera()" style="position:absolute;top:15px;right:15px;background:transparent;border:none;font-size:28px;cursor:pointer;color:#999;line-height:1;padding:0;width:30px;height:30px;display:flex;align-items:center;justify-content:center;transition:color 0.2s;" onmouseover="this.style.color='#333'" onmouseout="this.style.color='#999'">×</button>
+                        <h3 style="margin:0 0 15px 0;text-align:center;color:#333;">📸 Tomar Fotografía</h3>
+
+                        <!-- Vista previa de cámara -->
+                        <div style="position:relative;background:#000;border-radius:10px;overflow:hidden;">
+                            <video id="pedidoCameraVideo" autoplay playsinline style="width:100%;height:auto;display:block;touch-action:none;"></video>
+
+                            <!-- Grilla de ayuda compositiva (regla de tercios) -->
+                            <div id="pedidoGridOverlay" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;display:none;">
+                                <svg width="100%" height="100%" style="position:absolute;top:0;left:0;">
+                                    <line x1="33.33%" y1="0" x2="33.33%" y2="100%" stroke="white" stroke-width="1" opacity="0.3"/>
+                                    <line x1="66.66%" y1="0" x2="66.66%" y2="100%" stroke="white" stroke-width="1" opacity="0.3"/>
+                                    <line x1="0" y1="33.33%" x2="100%" y2="33.33%" stroke="white" stroke-width="1" opacity="0.3"/>
+                                    <line x1="0" y1="66.66%" x2="100%" y2="66.66%" stroke="white" stroke-width="1" opacity="0.3"/>
+                                </svg>
+                            </div>
+
+                            <!-- Marco de enfoque central -->
+                            <div id="pedidoFocusFrame" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:70%;height:70%;border:2px solid rgba(255,255,255,0.5);border-radius:10px;pointer-events:none;"></div>
+
+                            <!-- Efecto flash -->
+                            <div id="pedidoCaptureFlash" style="position:absolute;top:0;left:0;width:100%;height:100%;background:white;opacity:0;pointer-events:none;transition:opacity 0.1s;"></div>
+
+                            <!-- Indicador de cámara activa -->
+                            <div style="position:absolute;top:10px;left:10px;background:rgba(255,0,0,0.8);color:white;padding:5px 10px;border-radius:15px;font-size:12px;font-weight:bold;">
+                                ● REC
+                            </div>
+
+                            <!-- Información de resolución -->
+                            <div id="pedidoResolutionInfo" style="position:absolute;top:10px;right:10px;background:rgba(0,0,0,0.7);color:white;padding:5px 10px;border-radius:5px;font-size:11px;"></div>
+                        </div>
+
+                        <!-- Controles de cámara -->
+                        <div style="margin-top:15px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                            <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;user-select:none;">
+                                <input type="checkbox" id="pedidoGridToggle" onchange="togglePedidoGrid(this.checked)" style="cursor:pointer;">
+                                Grilla
+                            </label>
+                            <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;user-select:none;">
+                                <input type="checkbox" id="pedidoFocusFrameToggle" checked onchange="togglePedidoFocusFrame(this.checked)" style="cursor:pointer;">
+                                Marco
+                            </label>
+                            <div style="flex:1;"></div>
+                            <span style="font-size:12px;color:#666;">Zoom:</span>
+                            <input type="range" id="pedidoZoomSlider" min="1" max="3" step="0.1" value="1" onchange="adjustPedidoZoom(this.value)" style="width:100px;cursor:pointer;">
+                            <span id="pedidoZoomValue" style="font-size:12px;color:#666;min-width:35px;">1.0x</span>
+                        </div>
+
+                        <!-- Botones principales -->
+                        <div style="margin-top:20px;text-align:center;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+                            <button class="btn btn-success" onclick="capturePedidoPhoto()" style="flex:1;min-width:140px;font-size:16px;padding:12px;">📸 Capturar</button>
+                            <button class="btn btn-secondary" onclick="flipPedidoCamera()" style="padding:12px 20px;">🔄 Cámara</button>
+                            <button class="btn btn-danger" onclick="closePedidoCamera()" style="padding:12px 20px;">❌ Cerrar</button>
+                        </div>
+
+                        <p style="margin:10px 0 0 0;text-align:center;font-size:11px;color:#999;">
+                            💡 Centra el producto en el marco • Usa buena iluminación • Mantén el dispositivo estable
+                        </p>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            const video = document.getElementById('pedidoCameraVideo');
+            video.srcObject = stream;
+
+            // Mostrar información de resolución cuando el video esté listo
+            video.addEventListener('loadedmetadata', () => {
+                const resInfo = document.getElementById('pedidoResolutionInfo');
+                if (resInfo) {
+                    resInfo.textContent = `${video.videoWidth}x${video.videoHeight}`;
+                }
+
+                // Verificar si el dispositivo soporta zoom
+                const track = stream.getVideoTracks()[0];
+                const capabilities = track.getCapabilities ? track.getCapabilities() : {};
+
+                if (capabilities.zoom) {
+                    const zoomSlider = document.getElementById('pedidoZoomSlider');
+                    zoomSlider.min = capabilities.zoom.min || 1;
+                    zoomSlider.max = capabilities.zoom.max || 3;
+                    zoomSlider.step = capabilities.zoom.step || 0.1;
+                }
+            });
+
+            window.currentPedidoStream = stream;
+            window.pedidoCameraModal = modal;
+
+            // Agregar Pinch-to-Zoom con gestos táctiles
+            let initialPinchDistance = 0;
+            let initialZoomValue = 1;
+
+            video.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 2) {
+                    e.preventDefault();
+                    const touch1 = e.touches[0];
+                    const touch2 = e.touches[1];
+                    initialPinchDistance = Math.hypot(
+                        touch2.clientX - touch1.clientX,
+                        touch2.clientY - touch1.clientY
+                    );
+                    const zoomSlider = document.getElementById('pedidoZoomSlider');
+                    initialZoomValue = parseFloat(zoomSlider.value);
+                }
+            }, { passive: false });
+
+            video.addEventListener('touchmove', (e) => {
+                if (e.touches.length === 2) {
+                    e.preventDefault();
+                    const touch1 = e.touches[0];
+                    const touch2 = e.touches[1];
+                    const currentDistance = Math.hypot(
+                        touch2.clientX - touch1.clientX,
+                        touch2.clientY - touch1.clientY
+                    );
+
+                    const scale = currentDistance / initialPinchDistance;
+                    const newZoom = Math.max(1, Math.min(3, initialZoomValue * scale));
+
+                    const zoomSlider = document.getElementById('pedidoZoomSlider');
+                    zoomSlider.value = newZoom;
+                    adjustPedidoZoom(newZoom);
+                }
+            }, { passive: false });
+
+            // Agregar atajo de teclado para capturar (Espacio)
+            window.pedidoCameraKeyHandler = (e) => {
+                if (e.code === 'Space' && window.pedidoCameraModal) {
+                    e.preventDefault();
+                    capturePedidoPhoto();
+                } else if (e.code === 'Escape' && window.pedidoCameraModal) {
+                    e.preventDefault();
+                    closePedidoCamera();
+                }
+            };
+            document.addEventListener('keydown', window.pedidoCameraKeyHandler);
+        }
+
+        // Función para alternar grilla de composición
+        function togglePedidoGrid(show) {
+            const grid = document.getElementById('pedidoGridOverlay');
+            if (grid) {
+                grid.style.display = show ? 'block' : 'none';
+            }
+        }
+
+        // Función para alternar marco de enfoque
+        function togglePedidoFocusFrame(show) {
+            const frame = document.getElementById('pedidoFocusFrame');
+            if (frame) {
+                frame.style.display = show ? 'block' : 'none';
+            }
+        }
+
+        // Función para ajustar zoom
+        function adjustPedidoZoom(value) {
+            const zoomValueDisplay = document.getElementById('pedidoZoomValue');
+            if (zoomValueDisplay) {
+                zoomValueDisplay.textContent = parseFloat(value).toFixed(1) + 'x';
+            }
+
+            if (window.currentPedidoStream) {
+                const track = window.currentPedidoStream.getVideoTracks()[0];
+                const capabilities = track.getCapabilities ? track.getCapabilities() : {};
+
+                if (capabilities.zoom) {
+                    track.applyConstraints({
+                        advanced: [{ zoom: parseFloat(value) }]
+                    }).catch(err => {
+                        console.log('Zoom no soportado:', err);
+                    });
+                } else {
+                    // Fallback: zoom digital mediante CSS transform
+                    const video = document.getElementById('pedidoCameraVideo');
+                    if (video) {
+                        video.style.transform = `scale(${value})`;
+                        video.style.transformOrigin = 'center center';
+                    }
+                }
+            }
+        }
+
+        async function flipPedidoCamera() {
+            // Cambiar entre frontal y trasera
+            currentPedidoCameraMode = currentPedidoCameraMode === 'user' ? 'environment' : 'user';
+            try {
+                await startPedidoCamera();
+            } catch (error) {
+                alert('❌ No se pudo cambiar la cámara: ' + error.message);
+                // Volver al modo anterior si falla
+                currentPedidoCameraMode = currentPedidoCameraMode === 'user' ? 'environment' : 'user';
             }
         }
 
@@ -4886,30 +5080,70 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
         function capturePedidoPhoto() {
             const video = document.getElementById('pedidoCameraVideo');
             const canvas = document.createElement('canvas');
+
+            // Usar resolución del video
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
-            canvas.getContext('2d').drawImage(video, 0, 0);
 
-            canvas.toBlob((blob) => {
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0);
+
+            // Efecto flash visual
+            const flash = document.getElementById('pedidoCaptureFlash');
+            if (flash) {
+                flash.style.opacity = '0.7';
+                setTimeout(() => flash.style.opacity = '0', 100);
+            }
+
+            // Comprimir imagen para tamaño óptimo
+            let finalCanvas = canvas;
+            const maxDimension = 1600;
+
+            if (canvas.width > maxDimension || canvas.height > maxDimension) {
+                finalCanvas = document.createElement('canvas');
+                const scale = Math.min(maxDimension / canvas.width, maxDimension / canvas.height);
+                finalCanvas.width = canvas.width * scale;
+                finalCanvas.height = canvas.height * scale;
+
+                const finalCtx = finalCanvas.getContext('2d');
+                finalCtx.drawImage(canvas, 0, 0, finalCanvas.width, finalCanvas.height);
+            }
+
+            // Convertir a blob con calidad ajustada
+            finalCanvas.toBlob((blob) => {
+                const sizeMB = blob.size / (1024 * 1024);
+                console.log(`Tamaño de imagen: ${sizeMB.toFixed(2)} MB`);
+
+                if (sizeMB > 5) {
+                    alert('⚠️ La imagen es muy grande. Intenta con mejor iluminación o más cerca del producto.');
+                    return;
+                }
+
                 selectedPedidoImageFile = new File([blob], 'photo.jpg', { type: 'image/jpeg' });
 
-                const dataUrl = canvas.toDataURL('image/jpeg');
+                const dataUrl = finalCanvas.toDataURL('image/jpeg', 0.85);
                 document.getElementById('pedidoPreviewImg').src = dataUrl;
                 document.getElementById('pedidoImagePreview').style.display = 'block';
-                document.getElementById('pedidoProductoFoto').value = dataUrl; // Guardar base64
+                document.getElementById('pedidoProductoFoto').value = dataUrl;
 
                 closePedidoCamera();
-            }, 'image/jpeg', 0.9);
+            }, 'image/jpeg', 0.85);
         }
 
         // Cerrar cámara
         function closePedidoCamera() {
-            if (window.pedidoCameraStream) {
-                window.pedidoCameraStream.getTracks().forEach(track => track.stop());
+            if (window.currentPedidoStream) {
+                window.currentPedidoStream.getTracks().forEach(track => track.stop());
+                window.currentPedidoStream = null;
             }
             if (window.pedidoCameraModal) {
                 window.pedidoCameraModal.remove();
                 window.pedidoCameraModal = null;
+            }
+            // Remover listener de teclado
+            if (window.pedidoCameraKeyHandler) {
+                document.removeEventListener('keydown', window.pedidoCameraKeyHandler);
+                window.pedidoCameraKeyHandler = null;
             }
         }
 
