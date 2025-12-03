@@ -5274,6 +5274,10 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
             if (tipo) {
                 document.getElementById('pedidoPrecioMinorista').value = tipo.precioMinorista;
                 document.getElementById('pedidoPrecioMayorista').value = tipo.precioMayorista;
+
+                // Actualizar automáticamente el Precio Servicio
+                document.getElementById('pedidoPrecioServicio').value = tipo.precioMinorista;
+
                 calcularTotal();
             }
         }
@@ -5428,6 +5432,28 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
             const paraRegalo = document.getElementById('pedidoParaRegalo').checked;
             const paqueteGroup = document.getElementById('paqueteRegaloGroup');
             paqueteGroup.style.display = paraRegalo ? 'block' : 'none';
+
+            // Si se desmarca, limpiar el precio de extras
+            if (!paraRegalo) {
+                document.getElementById('pedidoPaqueteRegalo').value = '';
+                document.getElementById('pedidoPrecioExtras').value = 0;
+                calcularTotal();
+            }
+        }
+
+        // Actualizar precio extras cuando se selecciona un paquete de regalo
+        function updatePrecioExtrasFromPaquete() {
+            const select = document.getElementById('pedidoPaqueteRegalo');
+            const selectedOption = select.options[select.selectedIndex];
+
+            if (selectedOption && selectedOption.value) {
+                const precio = parseFloat(selectedOption.dataset.price) || 0;
+                document.getElementById('pedidoPrecioExtras').value = precio;
+                calcularTotal();
+            } else {
+                document.getElementById('pedidoPrecioExtras').value = 0;
+                calcularTotal();
+            }
         }
 
         // Cargar paquetes de regalo en el selector
@@ -6269,16 +6295,16 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
                         <h3 style="margin: 0 0 15px 0; color: #28a745;">💰 Precios y Cálculos</h3>
                         <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
                             <div class="form-group">
-                                <label>Precio Base (₲)</label>
-                                <input type="number" id="pedidoPrecioBase" value="0" min="0" step="1000" onchange="calcularTotal()">
+                                <label>Precio Base (₲) <small style="color: #999;">Automático</small></label>
+                                <input type="number" id="pedidoPrecioBase" value="0" min="0" step="1000" readonly style="background: #f0f0f0; cursor: not-allowed;">
                             </div>
                             <div class="form-group">
-                                <label>Precio Servicio (₲)</label>
-                                <input type="number" id="pedidoPrecioServicio" value="0" min="0" step="1000" onchange="calcularTotal()">
+                                <label>Precio Servicio (₲) <small style="color: #999;">Automático</small></label>
+                                <input type="number" id="pedidoPrecioServicio" value="0" min="0" step="1000" readonly style="background: #f0f0f0; cursor: not-allowed;">
                             </div>
                             <div class="form-group">
-                                <label>Extras (₲)</label>
-                                <input type="number" id="pedidoPrecioExtras" value="0" min="0" step="1000" onchange="calcularTotal()">
+                                <label>Extras (₲) <small style="color: #999;">Automático</small></label>
+                                <input type="number" id="pedidoPrecioExtras" value="0" min="0" step="1000" readonly style="background: #f0f0f0; cursor: not-allowed;">
                             </div>
                         </div>
                         <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
@@ -6320,7 +6346,7 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
                         </div>
                         <div class="form-group" id="paqueteRegaloGroup" style="display: none;">
                             <label>Paquete de Regalo</label>
-                            <select id="pedidoPaqueteRegalo" style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px;">
+                            <select id="pedidoPaqueteRegalo" onchange="updatePrecioExtrasFromPaquete()" style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px;">
                                 <option value="">Seleccionar paquete...</option>
                             </select>
                         </div>
