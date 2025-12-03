@@ -5315,7 +5315,10 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
                             <span>📦 Mayorista: <strong style="color: #667eea;">${formatGuaranies(tipo.precioMayorista)}</strong></span>
                         </div>
                     </div>
-                    <button type="button" class="btn btn-danger" onclick="eliminarTipoGrabado(${index})" style="font-size: 12px; padding: 6px 12px;">🗑️ Eliminar</button>
+                    <div style="display: flex; gap: 8px;">
+                        <button type="button" class="btn btn-primary" onclick="editarTipoGrabado(${index})" style="font-size: 12px; padding: 6px 12px;">✏️ Editar</button>
+                        <button type="button" class="btn btn-danger" onclick="eliminarTipoGrabado(${index})" style="font-size: 12px; padding: 6px 12px;">🗑️ Eliminar</button>
+                    </div>
                 </div>
             `).join('');
         }
@@ -5325,6 +5328,7 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
             const nombre = document.getElementById('nuevoTipoGrabadoNombre').value.trim();
             const precioMinorista = parseInt(document.getElementById('nuevoTipoGrabadoPrecioMinorista').value);
             const precioMayorista = parseInt(document.getElementById('nuevoTipoGrabadoPrecioMayorista').value);
+            const editIndex = document.getElementById('editTipoGrabadoIndex').value;
 
             if (!nombre) {
                 alert('Por favor ingresa el nombre del tipo de grabado');
@@ -5343,26 +5347,68 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
 
             const tipos = getTiposGrabado();
 
-            // Verificar si ya existe
-            if (tipos.some(t => t.nombre.toLowerCase() === nombre.toLowerCase())) {
-                alert('Ya existe un tipo de grabado con ese nombre');
-                return;
+            // Si estamos editando
+            if (editIndex !== '') {
+                const index = parseInt(editIndex);
+                // Verificar si ya existe otro tipo con ese nombre
+                if (tipos.some((t, i) => i !== index && t.nombre.toLowerCase() === nombre.toLowerCase())) {
+                    alert('Ya existe un tipo de grabado con ese nombre');
+                    return;
+                }
+
+                tipos[index] = {
+                    nombre: nombre,
+                    precioMinorista: precioMinorista,
+                    precioMayorista: precioMayorista
+                };
+
+                localStorage.setItem('tiposGrabado', JSON.stringify(tipos));
+                alert('✅ Tipo de grabado actualizado exitosamente');
+            } else {
+                // Si estamos agregando nuevo
+                // Verificar si ya existe
+                if (tipos.some(t => t.nombre.toLowerCase() === nombre.toLowerCase())) {
+                    alert('Ya existe un tipo de grabado con ese nombre');
+                    return;
+                }
+
+                tipos.push({
+                    nombre: nombre,
+                    precioMinorista: precioMinorista,
+                    precioMayorista: precioMayorista
+                });
+
+                localStorage.setItem('tiposGrabado', JSON.stringify(tipos));
+                alert('✅ Tipo de grabado creado exitosamente');
             }
 
-            tipos.push({
-                nombre: nombre,
-                precioMinorista: precioMinorista,
-                precioMayorista: precioMayorista
-            });
-
-            localStorage.setItem('tiposGrabado', JSON.stringify(tipos));
-
-            alert('✅ Tipo de grabado creado exitosamente');
+            // Limpiar formulario
             document.getElementById('nuevoTipoGrabadoNombre').value = '';
             document.getElementById('nuevoTipoGrabadoPrecioMinorista').value = 0;
             document.getElementById('nuevoTipoGrabadoPrecioMayorista').value = 0;
+            document.getElementById('editTipoGrabadoIndex').value = '';
+            document.getElementById('btnAgregarTipoGrabado').textContent = '➕ Agregar Tipo';
+
             loadTiposGrabadoInSelect();
             loadTiposGrabadoList();
+        }
+
+        // Editar tipo de grabado
+        function editarTipoGrabado(index) {
+            const tipos = getTiposGrabado();
+            const tipo = tipos[index];
+
+            // Cargar datos en el formulario
+            document.getElementById('nuevoTipoGrabadoNombre').value = tipo.nombre;
+            document.getElementById('nuevoTipoGrabadoPrecioMinorista').value = tipo.precioMinorista;
+            document.getElementById('nuevoTipoGrabadoPrecioMayorista').value = tipo.precioMayorista;
+            document.getElementById('editTipoGrabadoIndex').value = index;
+
+            // Cambiar texto del botón
+            document.getElementById('btnAgregarTipoGrabado').textContent = '💾 Guardar Cambios';
+
+            // Scroll hacia arriba para ver el formulario
+            document.getElementById('nuevoTipoGrabadoNombre').scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
 
         // Eliminar tipo de grabado
@@ -6524,6 +6570,7 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
                 <!-- Formulario para agregar tipo de grabado -->
                 <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
                     <h3 style="margin: 0 0 15px 0;">➕ Agregar Nuevo Tipo de Grabado</h3>
+                    <input type="hidden" id="editTipoGrabadoIndex" value="">
                     <div class="form-group" style="margin-bottom: 15px;">
                         <label>Nombre del Tipo (ej: Nombre, Nombre y Apellido, Frase Corta)</label>
                         <input type="text" id="nuevoTipoGrabadoNombre" placeholder="Ej: Nombre y Apellido" style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px;">
@@ -6538,7 +6585,7 @@ Nota: Los productos con esta categoría no se eliminarán.`)) {
                             <input type="number" id="nuevoTipoGrabadoPrecioMayorista" value="0" min="0" step="1000" placeholder="Ej: 15000" style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px;">
                         </div>
                     </div>
-                    <button type="button" class="btn btn-primary" onclick="agregarNuevoTipoGrabado()" style="width: 100%;">➕ Agregar Tipo</button>
+                    <button type="button" id="btnAgregarTipoGrabado" class="btn btn-primary" onclick="agregarNuevoTipoGrabado()" style="width: 100%;">➕ Agregar Tipo</button>
                 </div>
 
                 <!-- Lista de tipos de grabado -->
